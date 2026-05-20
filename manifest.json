@@ -6,9 +6,17 @@
   "entrypoint": "index.html",
   "runtime": "static",
   "category": "family",
-  "tags": ["pets", "feeding", "medication", "care", "reminders"],
+  "tags": [
+    "pets",
+    "feeding",
+    "medication",
+    "care",
+    "reminders"
+  ],
   "data_access": {
-    "reads": ["family.members"],
+    "reads": [
+      "family.members"
+    ],
     "writes": []
   },
   "permissions": {
@@ -16,9 +24,15 @@
     "requires_approval": false
   },
   "storage": "db",
-  "nav": { "label": "Pet Care", "icon": "🐾" },
-  "widget": { "label": "Pet Care", "size": "small" },
+  "nav": {
+    "label": "Pet Care"
+  },
+  "widget": {
+    "label": "Pet Care",
+    "size": "small"
+  },
   "resource_limits": {
     "max_db_bytes": 52428800
-  }
+  },
+  "icon": "🐾"
 }
