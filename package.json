@@ -1,0 +1,10 @@
+{
+  "name": "chickadee-app-pet-care",
+  "version": "1.0.0",
+  "description": "Pet Care app for Family Hub",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "license": "MIT"
+}
