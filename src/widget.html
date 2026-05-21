@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pet Care Widget</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--hub-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      font-size: 13px;
+      background: #fff;
+      color: #111827;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px 8px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;
+    }
+    .header-title { font-weight: 600; font-size: 13px; }
+    .header-count { font-size: 11px; color: #6b7280; }
+
+    .pet-list { flex: 1; overflow-y: auto; }
+
+    .pet-section { border-bottom: 1px solid #f3f4f6; }
+    .pet-section:last-child { border-bottom: none; }
+
+    .pet-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 14px 4px;
+    }
+    .pet-emoji { font-size: 16px; flex-shrink: 0; }
+    .pet-name  { font-size: 12.5px; font-weight: 600; flex: 1; }
+
+    .activity-row {
+      display: flex; align-items: center; gap: 7px;
+      padding: 3px 14px 3px 38px;
+    }
+    .act-icon  { font-size: 13px; flex-shrink: 0; }
+    .act-name  { flex: 1; font-size: 11.5px; color: #374151; }
+
+    .due-badge {
+      font-size: 10px; font-weight: 600; border-radius: 10px;
+      padding: 1px 6px; flex-shrink: 0;
+    }
+    .due-overdue { background: #fee2e2; color: #dc2626; }
+    .due-soon    { background: #fef3c7; color: #d97706; }
+    .due-ok      { background: #d1fae5; color: #059669; }
+
+    .footer {
+      padding: 6px 14px; border-top: 1px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; background: #f9fafb;
+    }
+    .footer-hint { font-size: 11px; color: #9ca3af; }
+    .open-link { font-size: 11px; font-weight: 600; color: #111827; text-decoration: none; }
+    .open-link:hover { text-decoration: underline; }
+
+    .empty {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: #9ca3af; font-size: 12px; gap: 6px;
+    }
+  </style>
+</head>
+<body>
+<script type="module">
+const DB     = window.__DB_URL ?? "";
+const APP_ID = "pet-care";
+
+function esc(s) {
+  return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+async function dbq(sql, params = []) {
+  if (!DB) return { rows: [] };
+  const res = await fetch(DB, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sql, params }),
+  });
+  return res.json();
+}
+
+async function load() {
+  const [{ rows: pets }, { rows: activities }, { rows: lastLogs }] = await Promise.all([
+    dbq(`SELECT id, name, species, emoji FROM pets ORDER BY name ASC`),
+    dbq(`SELECT id, pet_id, name, icon, schedule_type, interval_hours FROM activities ORDER BY sort_order, created_at`),
+    dbq(`SELECT activity_id, MAX(done_at) AS last_done FROM logs GROUP BY activity_id`),
+  ]);
+
+  const lastMap = Object.fromEntries(lastLogs.map(r => [r.activity_id, r.last_done]));
+  const now = Date.now();
+
+  function dueInfo(act) {
+    if (act.schedule_type !== "interval" || !act.interval_hours) return null;
+    const lastDone = lastMap[act.id];
+    let hoursLeft;
+    if (lastDone) {
+      const next = new Date(lastDone).getTime() + act.interval_hours * 3600000;
+      hoursLeft = (next - now) / 3600000;
+    } else {
+      hoursLeft = -act.interval_hours;
+    }
+    return hoursLeft;
+  }
+
+  function dueLabel(hours) {
+    if (hours == null) return "";
+    if (hours <= 0) {
+      const h = Math.round(-hours);
+      return h < 1 ? "Now" : h < 24 ? `${h}h overdue` : `${Math.round(h/24)}d overdue`;
+    }
+    if (hours < 1) return "< 1h";
+    if (hours < 24) return `${Math.round(hours)}h`;
+    return `${Math.round(hours/24)}d`;
+  }
+
+  function dueCls(hours) {
+    if (hours == null) return "due-ok";
+    if (hours <= 0) return "due-overdue";
+    if (hours <= act_threshold(hours)) return "due-soon";
+    return "due-ok";
+  }
+
+  // threshold: "soon" = within 25% of interval
+  function act_threshold(hours) {
+    // use 8h as soon threshold — covers daily tasks
+    return 8;
+  }
+
+  let overdueCount = 0;
+
+  const sections = pets.map(pet => {
+    const petActs = activities.filter(a => a.pet_id === pet.id);
+    if (petActs.length === 0) return null;
+
+    const rows = petActs.map(act => {
+      const hours = dueInfo(act);
+      if (hours !== null && hours <= 0) overdueCount++;
+      const cls = hours == null ? "due-ok" : hours <= 0 ? "due-overdue" : hours <= 8 ? "due-soon" : "due-ok";
+      const label = dueLabel(hours);
+      return `<div class="activity-row">
+        <span class="act-icon">${act.icon ?? "🐾"}</span>
+        <span class="act-name">${esc(act.name)}</span>
+        ${label ? `<span class="due-badge ${cls}">${label}</span>` : ""}
+      </div>`;
+    }).join("");
+
+    return `<div class="pet-section">
+      <div class="pet-header">
+        <span class="pet-emoji">${pet.emoji ?? "🐾"}</span>
+        <span class="pet-name">${esc(pet.name)}</span>
+      </div>
+      ${rows}
+    </div>`;
+  }).filter(Boolean);
+
+  const header = `
+    <div class="header">
+      <span class="header-title">Pet Care</span>
+      <span class="header-count">${overdueCount > 0 ? `${overdueCount} overdue` : `${pets.length} pet${pets.length !== 1 ? "s" : ""}`}</span>
+    </div>`;
+
+  let body;
+  if (pets.length === 0) {
+    body = `<div class="empty">
+      <span>No pets added yet</span>
+      <a href="/open/${APP_ID}" onclick="window.__HUB_OPEN && (event.preventDefault(), window.__HUB_OPEN('${APP_ID}'))" style="color:#111827;font-weight:600;font-size:11px">Add a pet →</a>
+    </div>`;
+  } else {
+    body = `<div class="pet-list">${sections.join("")}</div>`;
+  }
+
+  const footer = `
+    <div class="footer">
+      <span class="footer-hint">${pets.length} pet${pets.length !== 1 ? "s" : ""}, ${activities.length} task${activities.length !== 1 ? "s" : ""}</span>
+      <a class="open-link" href="/open/${APP_ID}" onclick="window.__HUB_OPEN && (event.preventDefault(), window.__HUB_OPEN('${APP_ID}'))">Open Pet Care →</a>
+    </div>`;
+
+  document.body.innerHTML = header + body + footer;
+}
+
+load().catch(() => {
+  document.body.innerHTML = `<div class="empty"><a href="/open/${APP_ID}" style="color:#111827;font-weight:600">Open Pet Care →</a></div>`;
+});
+</script>
+</body>
+</html>
