@@ -310,32 +310,7 @@ async function db(sql, params = []) {
 
 // ─── DB init ──────────────────────────────────────────────────────────────
 async function initDb() {
-  await db(`CREATE TABLE IF NOT EXISTS pets (
-    id         TEXT PRIMARY KEY,
-    name       TEXT NOT NULL,
-    species    TEXT NOT NULL DEFAULT '',
-    emoji      TEXT NOT NULL DEFAULT '🐾',
-    created_at TEXT NOT NULL
-  )`);
-  await db(`CREATE TABLE IF NOT EXISTS activities (
-    id             TEXT PRIMARY KEY,
-    pet_id         TEXT NOT NULL,
-    name           TEXT NOT NULL,
-    icon           TEXT NOT NULL DEFAULT '🐾',
-    schedule_type  TEXT NOT NULL DEFAULT 'interval',
-    interval_hours REAL,
-    times          TEXT NOT NULL DEFAULT '[]',
-    sort_order     INTEGER NOT NULL DEFAULT 0,
-    created_at     TEXT NOT NULL
-  )`);
-  await db(`CREATE TABLE IF NOT EXISTS logs (
-    id          TEXT PRIMARY KEY,
-    activity_id TEXT NOT NULL,
-    pet_id      TEXT NOT NULL,
-    done_by     TEXT NOT NULL,
-    done_at     TEXT NOT NULL
-  )`);
-}
+  // Schema is managed by hub migrations (migrations/001_init.sql)}
 
 // ─── Load ─────────────────────────────────────────────────────────────────
 async function loadMembers() {
