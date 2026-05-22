@@ -267,6 +267,10 @@
     .settings-row:last-child { border-bottom: none; }
     .settings-row .info { flex: 1; font-size: 0.88rem; }
     .settings-row .sched-meta { font-size: 0.78rem; color: var(--muted); }
+    .act-list { margin: 4px 0 6px 10px; padding-left: 10px; border-left: 2px solid var(--border); }
+    .act-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .act-row:last-child { border-bottom: none; }
+    .act-row .info { flex: 1; font-size: 0.83rem; }
 
     /* ── Misc ────────────────────────────────────────────── */
     .empty       { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
@@ -291,11 +295,11 @@ const ME      = window.__CURRENT_MEMBER ?? null;
 // ─── State ────────────────────────────────────────────────────────────────
 let members      = [];
 let pets         = [];
-let activities   = [];
+let activities   = []; // all activities across all pets
 let lastLogs     = {}; // activityId → most recent log row
-let selectedPetId = null;
-let settingsTab   = "activities";
-let refreshTimer  = null;
+let selectedPetId  = null;
+let actFormPetId   = null; // pet context for the open activity form
+let refreshTimer   = null;
 
 // ─── DB helper ────────────────────────────────────────────────────────────
 async function db(sql, params = []) {
@@ -335,18 +339,15 @@ async function loadPets() {
 }
 
 async function loadActivities() {
-  if (!selectedPetId) { activities = []; return; }
-  const { rows } = await db(
-    `SELECT * FROM activities WHERE pet_id = ? ORDER BY sort_order, created_at`,
-    [selectedPetId]
-  );
+  const { rows } = await db(`SELECT * FROM activities ORDER BY pet_id, sort_order, created_at`);
   activities = (rows ?? []).map(r => ({ ...r, times: JSON.parse(r.times ?? "[]") }));
 }
 
 async function loadLastLogs() {
   lastLogs = {};
-  if (!activities.length) return;
-  const ids = activities.map(a => a.id);
+  const curActs = activities.filter(a => a.pet_id === selectedPetId);
+  if (!curActs.length) return;
+  const ids = curActs.map(a => a.id);
   const placeholders = ids.map(() => "?").join(",");
   const { rows } = await db(`
     SELECT l.* FROM logs l
@@ -474,7 +475,7 @@ async function savePet(fields, id = null) {
     await db(`INSERT INTO pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, ?)`,
       [newId, fields.name, fields.species, fields.emoji, now]);
     pets = [...pets, { id: newId, ...fields, created_at: now }];
-    if (!selectedPetId) { selectedPetId = newId; await loadActivities(); }
+    if (!selectedPetId) selectedPetId = newId;
   }
 }
 
@@ -484,16 +485,18 @@ async function deletePet(id) {
   await db(`DELETE FROM activities WHERE pet_id = ?`, [id]);
   await db(`DELETE FROM logs WHERE pet_id = ?`, [id]);
   pets = pets.filter(p => p.id !== id);
+  activities = activities.filter(a => a.pet_id !== id);
   if (selectedPetId === id) {
     selectedPetId = pets[0]?.id ?? null;
-    activities = []; lastLogs = {};
-    if (selectedPetId) { await loadActivities(); await loadLastLogs(); }
+    lastLogs = {};
+    if (selectedPetId) await loadLastLogs();
   }
   return true;
 }
 
 async function saveActivity(fields, id = null) {
   const now = new Date().toISOString();
+  const petId = actFormPetId ?? selectedPetId;
   const timesJson = JSON.stringify(fields.times ?? []);
   if (id) {
     await db(`UPDATE activities SET name = ?, icon = ?, schedule_type = ?, interval_hours = ?, times = ? WHERE id = ?`,
@@ -501,12 +504,12 @@ async function saveActivity(fields, id = null) {
     activities = activities.map(a => a.id === id ? { ...a, ...fields, times: fields.times ?? [] } : a);
   } else {
     const newId = crypto.randomUUID();
-    const order = activities.length;
+    const order = activities.filter(a => a.pet_id === petId).length;
     await db(`INSERT INTO activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [newId, selectedPetId, fields.name, fields.icon, fields.schedule_type,
+      [newId, petId, fields.name, fields.icon, fields.schedule_type,
        fields.interval_hours ?? null, timesJson, order, now]);
-    activities = [...activities, { id: newId, pet_id: selectedPetId, ...fields, times: fields.times ?? [], sort_order: order }];
+    activities = [...activities, { id: newId, pet_id: petId, ...fields, times: fields.times ?? [], sort_order: order }];
   }
 }
 
@@ -578,17 +581,18 @@ function renderMain() {
       ).join("")}</div>`
     : "";
 
+  const curActs = activities.filter(a => a.pet_id === selectedPetId);
   let bodyHtml;
   if (pets.length === 0) {
     bodyHtml = meIsAdmin
       ? `<div class="empty">No pets yet. Tap ⚙️ to add your first pet.</div>`
       : `<div class="empty">No pets configured yet.</div>`;
-  } else if (activities.length === 0) {
+  } else if (curActs.length === 0) {
     bodyHtml = meIsAdmin
       ? `<div class="empty">No activities for ${esc(pet?.name ?? "this pet")} yet. Tap ⚙️ to add some.</div>`
       : `<div class="empty">No activities configured yet.</div>`;
   } else {
-    bodyHtml = `<div class="card-grid">${activities.map(renderCard).join("")}</div>`;
+    bodyHtml = `<div class="card-grid">${curActs.map(renderCard).join("")}</div>`;
   }
 
   document.getElementById("root").innerHTML = `
@@ -606,69 +610,50 @@ function renderMain() {
 
 // ─── Settings modal ───────────────────────────────────────────────────────
 function renderSettingsModal() {
-  const tab = settingsTab;
-  const pet = pets.find(p => p.id === selectedPetId);
-
-  const petsHtml = `
-    ${pets.map(p => `
-      <div class="settings-row">
-        <div class="info">
-          <strong>${p.emoji} ${esc(p.name)}</strong>
-          ${p.species ? `<span class="muted"> · ${esc(p.species)}</span>` : ""}
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="openPetForm('${p.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="doDeletePet('${p.id}')">Delete</button>
-        </div>
-      </div>
-    `).join("") || `<div class="empty-sm">No pets yet.</div>`}
-    <div style="margin-top:12px">
-      <button class="btn btn-primary btn-sm" onclick="openPetForm()">+ Add Pet</button>
-    </div>
-  `;
-
   const schedLabel = (a) => a.schedule_type === "interval"
     ? `Every ${a.interval_hours}h`
     : `${(a.times ?? []).join(", ")}`;
 
-  const activitiesHtml = !selectedPetId
-    ? `<div class="empty-sm">Select a pet first.</div>`
-    : `
-      ${activities.map(a => `
-        <div class="settings-row">
+  const petsHtml = pets.map(p => {
+    const pActs = activities.filter(a => a.pet_id === p.id);
+    const actsHtml = pActs.map(a => `
+      <div class="act-row">
+        <div class="info"><strong>${a.icon} ${esc(a.name)}</strong> <span class="sched-meta">${schedLabel(a)}</span></div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="openActivityForm('${a.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="doDeleteActivity('${a.id}')">Delete</button>
+        </div>
+      </div>`).join("");
+    return `
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
           <div class="info">
-            <strong>${a.icon} ${esc(a.name)}</strong>
-            <div class="sched-meta">${schedLabel(a)}</div>
+            <strong>${p.emoji} ${esc(p.name)}</strong>
+            ${p.species ? `<span class="muted"> · ${esc(p.species)}</span>` : ""}
           </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" onclick="openActivityForm('${a.id}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="doDeleteActivity('${a.id}')">Delete</button>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-ghost btn-sm" onclick="openPetForm('${p.id}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="doDeletePet('${p.id}')">Delete</button>
           </div>
         </div>
-      `).join("") || `<div class="empty-sm">No activities for ${esc(pet?.name ?? "this pet")} yet.</div>`}
-      <div style="margin-top:12px">
-        <button class="btn btn-primary btn-sm" onclick="openActivityForm()">+ Add Activity</button>
-      </div>
-    `;
+        <div class="act-list">
+          ${actsHtml || `<div class="empty-sm">No activities yet.</div>`}
+          <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="openActivityForm(null,'${p.id}')">+ Add Activity</button>
+        </div>
+      </div>`;
+  }).join("") || `<div class="empty-sm">No pets yet.</div>`;
 
   openModal(`
     <div class="settings-header">
-      <h3>⚙️ Settings</h3>
+      <h3>⚙️ Pets &amp; Activities</h3>
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Done</button>
     </div>
-    <div class="tabs">
-      <button class="tab ${tab === "pets" ? "active" : ""}" onclick="switchTab('pets')">Pets</button>
-      <button class="tab ${tab === "activities" ? "active" : ""}" onclick="switchTab('activities')">
-        Activities${pet ? ` — ${pet.emoji} ${esc(pet.name)}` : ""}
-      </button>
-    </div>
-    <div class="settings-section">
-      ${tab === "pets" ? petsHtml : activitiesHtml}
+    ${petsHtml}
+    <div style="margin-top:14px">
+      <button class="btn btn-primary btn-sm" onclick="openPetForm()">+ Add Pet</button>
     </div>
   `);
 }
-
-window.switchTab = function(tab) { settingsTab = tab; renderSettingsModal(); };
 
 window.doDeletePet = async function(id) {
   const ok = await deletePet(id);
@@ -730,7 +715,8 @@ window.submitPet = async function(existingId) {
 // ─── Activity form ────────────────────────────────────────────────────────
 const ACT_ICONS = ["🍽️","💊","🚽","🦮","🛁","😴","💉","🦷","👁️","✂️","🎾","💧","🌿","🧸","🏃","🐾"];
 
-function openActivityForm(id = null) {
+function openActivityForm(id = null, petId = null) {
+  actFormPetId = id ? (activities.find(a => a.id === id)?.pet_id ?? selectedPetId) : (petId ?? selectedPetId);
   const act   = id ? activities.find(a => a.id === id) : null;
   const sched = act?.schedule_type ?? "interval";
   const sel   = act?.icon ?? "🍽️";
@@ -829,7 +815,7 @@ window.submitActivity = async function(existingId) {
 };
 
 window.backToSettings = function() { renderSettingsModal(); };
-window.openSettings   = function() { settingsTab = "activities"; renderSettingsModal(); };
+window.openSettings   = function() { renderSettingsModal(); };
 window.openPetForm    = openPetForm;
 window.openActivityForm = openActivityForm;
 window.closeModal     = closeModal;
@@ -837,7 +823,6 @@ window.markDone       = markDone;
 
 window.selectPet = async function(id) {
   selectedPetId = id;
-  await loadActivities();
   await loadLastLogs();
   renderMain();
 };
@@ -847,9 +832,8 @@ window.selectPet = async function(id) {
   await loadMembers();
   if (DB) {
     await initDb();
-    await loadPets();
-    if (pets.length > 0) { selectedPetId = pets[0].id; }
-    await loadActivities();
+    await Promise.all([loadPets(), loadActivities()]);
+    if (pets.length > 0) selectedPetId = pets[0].id;
     await loadLastLogs();
   }
   renderMain();
