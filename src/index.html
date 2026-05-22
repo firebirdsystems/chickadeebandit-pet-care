@@ -286,7 +286,7 @@
 </div>
 
 <script type="module">
-import { memberColor, initial, esc, isAdult } from "/hub-sdk.js";
+import { memberColor, initial, esc, isAdult, hubConfirm } from "/hub-sdk.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB      = window.__DB_URL      ?? "";
@@ -480,7 +480,7 @@ async function savePet(fields, id = null) {
 }
 
 async function deletePet(id) {
-  if (!confirm("Delete this pet and all their care data?")) return false;
+  if (!await hubConfirm({ message: "Delete this pet?", description: "All care data for this pet will be permanently removed.", confirmLabel: "Delete pet" })) return false;
   await db(`DELETE FROM pets WHERE id = ?`, [id]);
   await db(`DELETE FROM activities WHERE pet_id = ?`, [id]);
   await db(`DELETE FROM logs WHERE pet_id = ?`, [id]);
@@ -514,7 +514,7 @@ async function saveActivity(fields, id = null) {
 }
 
 async function deleteActivity(id) {
-  if (!confirm("Delete this activity and its history?")) return false;
+  if (!await hubConfirm({ message: "Delete this activity?", description: "The activity and its log history will be permanently removed.", confirmLabel: "Delete" })) return false;
   await db(`DELETE FROM activities WHERE id = ?`, [id]);
   await db(`DELETE FROM logs WHERE activity_id = ?`, [id]);
   activities = activities.filter(a => a.id !== id);
