@@ -510,6 +510,12 @@ async function saveActivity(fields, id = null) {
       [newId, petId, fields.name, fields.icon, fields.schedule_type,
        fields.interval_hours ?? null, timesJson, order, now]);
     activities = [...activities, { id: newId, pet_id: petId, ...fields, times: fields.times ?? [], sort_order: order }];
+    if (fields.lastDoneAt) {
+      const logId = crypto.randomUUID();
+      await db(`INSERT INTO logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
+        [logId, newId, petId, ME.id, fields.lastDoneAt]);
+      lastLogs[newId] = { id: logId, activity_id: newId, pet_id: petId, done_by: ME.id, done_at: fields.lastDoneAt };
+    }
   }
 }
 
@@ -761,6 +767,7 @@ function openActivityForm(id = null, petId = null) {
         <label>Interval (hours)</label>
         <input id="af-hours" type="number" min="0.25" max="168" step="0.25" value="${act?.interval_hours ?? 8}" style="max-width:140px" />
       </div>
+      ${!act ? `<div class="form-group"><label>Last done <span class="muted-label">(optional)</span></label><input id="af-lastdone" type="date" style="max-width:180px" max="${new Date().toISOString().slice(0,10)}" /></div>` : ""}
     </div>
     <div id="sched-times" style="${sched !== "times" ? "display:none" : ""}">
       <div class="form-group">
@@ -800,15 +807,17 @@ window.submitActivity = async function(existingId) {
   const sched = document.querySelector("input[name='sched']:checked")?.value ?? "interval";
   if (!name) { document.getElementById("af-name").focus(); return; }
 
-  let interval_hours = null, times = [];
+  let interval_hours = null, times = [], lastDoneAt = null;
   if (sched === "interval") {
     interval_hours = parseFloat(document.getElementById("af-hours").value) || 8;
+    const lastDoneVal = document.getElementById("af-lastdone")?.value;
+    lastDoneAt = lastDoneVal ? new Date(lastDoneVal).toISOString() : null;
   } else {
     times = [...document.querySelectorAll(".time-input")].map(i => i.value).filter(Boolean).sort();
     if (!times.length) { alert("Add at least one time."); return; }
   }
 
-  await saveActivity({ name, icon, schedule_type: sched, interval_hours, times }, existingId || null);
+  await saveActivity({ name, icon, schedule_type: sched, interval_hours, times, lastDoneAt }, existingId || null);
   await loadLastLogs();
   renderSettingsModal();
   renderMain();
