@@ -293,6 +293,8 @@ const DB      = window.__DB_URL      ?? "";
 const ME      = window.__CURRENT_MEMBER ?? null;
 
 // ─── State ────────────────────────────────────────────────────────────────
+const mc = (id) => memberColor(id, members);
+
 let members      = [];
 let pets         = [];
 let activities   = []; // all activities across all pets
