@@ -783,6 +783,14 @@ window.selectPet = async function(id) {
   renderMain();
 };
 
+// ─── Deep link ────────────────────────────────────────────────────────────
+function handleDeepLink() {
+  const petId = new URLSearchParams(window.location.search).get("petId");
+  if (!petId) return;
+  const pet = pets.find(p => p.id === petId);
+  if (pet) window.selectPet(petId);
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────
 (async () => {
   await loadMembers();
@@ -793,6 +801,7 @@ window.selectPet = async function(id) {
     await loadLastLogs();
   }
   renderMain();
+  handleDeepLink();
   // Refresh status colors every minute without a full DB reload
   refreshTimer = setInterval(() => { if (!modalEl) renderMain(); }, 60_000);
 })();
