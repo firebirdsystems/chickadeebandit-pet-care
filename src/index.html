@@ -396,14 +396,25 @@ function activityStatus(activity) {
 // ─── Mark done ────────────────────────────────────────────────────────────
 async function markDone(activityId) {
   if (!ME) return;
-  const id  = crypto.randomUUID();
-  const now = new Date().toISOString();
-  // Insert new log, then immediately prune — table stays at 1 row per activity
-  await db(`INSERT INTO logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
-    [id, activityId, selectedPetId, ME.id, now]);
-  await db(`DELETE FROM logs WHERE activity_id = ? AND id != ?`, [activityId, id]);
+  const id      = crypto.randomUUID();
+  const now     = new Date().toISOString();
+  const prevLog = lastLogs[activityId];
+
+  // Optimistic update: reflect immediately, write to DB in background
   lastLogs[activityId] = { id, activity_id: activityId, pet_id: selectedPetId, done_by: ME.id, done_at: now };
   renderMain();
+
+  try {
+    await db(`INSERT INTO logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
+      [id, activityId, selectedPetId, ME.id, now]);
+    // Prune old logs in background — table stays at 1 row per activity, no effect on UI state
+    db(`DELETE FROM logs WHERE activity_id = ? AND id != ?`, [activityId, id]).catch(() => {});
+  } catch {
+    // Revert on INSERT failure
+    if (prevLog) lastLogs[activityId] = prevLog;
+    else delete lastLogs[activityId];
+    renderMain();
+  }
 }
 
 // ─── Admin CRUD ───────────────────────────────────────────────────────────
