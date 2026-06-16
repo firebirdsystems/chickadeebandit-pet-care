@@ -6,13 +6,10 @@ SELECT
   a.icon  AS activity_icon,
   p.name  AS pet_name,
   p.emoji AS pet_emoji
-FROM logs l
-JOIN activities a
-  ON a.id           = l.activity_id
-  AND a.household_id = l.household_id
-JOIN pets p
-  ON p.id           = l.pet_id
-  AND p.household_id = l.household_id
-WHERE l.household_id = current_setting('app.household_id', true)::uuid
+FROM app_pet_care__logs l
+JOIN app_pet_care__activities a
+  ON a.id = l.activity_id
+JOIN app_pet_care__pets p
+  ON p.id = l.pet_id
 ORDER BY l.done_at DESC
 LIMIT 100

@@ -337,12 +337,12 @@ async function loadMembers() {
 }
 
 async function loadPets() {
-  const { rows } = await db(`SELECT * FROM pets ORDER BY created_at`);
+  const { rows } = await db(`SELECT * FROM app_pet_care__pets ORDER BY created_at`);
   pets = rows ?? [];
 }
 
 async function loadActivities() {
-  const { rows } = await db(`SELECT * FROM activities ORDER BY pet_id, sort_order, created_at`);
+  const { rows } = await db(`SELECT * FROM app_pet_care__activities ORDER BY pet_id, sort_order, created_at`);
   activities = (rows ?? []).map(r => ({ ...r, times: JSON.parse(r.times ?? "[]") }));
 }
 
@@ -353,9 +353,9 @@ async function loadLastLogs() {
   const ids = curActs.map(a => a.id);
   const placeholders = ids.map(() => "?").join(",");
   const { rows } = await db(`
-    SELECT l.* FROM logs l
+    SELECT l.* FROM app_pet_care__logs l
     INNER JOIN (
-      SELECT activity_id, MAX(done_at) AS max_done FROM logs
+      SELECT activity_id, MAX(done_at) AS max_done FROM app_pet_care__logs
       WHERE activity_id IN (${placeholders})
       GROUP BY activity_id
     ) m ON l.activity_id = m.activity_id AND l.done_at = m.max_done
@@ -405,10 +405,10 @@ async function markDone(activityId) {
   renderMain();
 
   try {
-    await db(`INSERT INTO logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
+    await db(`INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
       [id, activityId, selectedPetId, ME.id, now]);
     // Prune old logs in background — table stays at 1 row per activity, no effect on UI state
-    db(`DELETE FROM logs WHERE activity_id = ? AND id != ?`, [activityId, id]).catch(() => {});
+    db(`DELETE FROM app_pet_care__logs WHERE activity_id = ? AND id != ?`, [activityId, id]).catch(() => {});
   } catch {
     // Revert on INSERT failure
     if (prevLog) lastLogs[activityId] = prevLog;
@@ -421,12 +421,12 @@ async function markDone(activityId) {
 async function savePet(fields, id = null) {
   const now = new Date().toISOString();
   if (id) {
-    await db(`UPDATE pets SET name = ?, species = ?, emoji = ? WHERE id = ?`,
+    await db(`UPDATE app_pet_care__pets SET name = ?, species = ?, emoji = ? WHERE id = ?`,
       [fields.name, fields.species, fields.emoji, id]);
     pets = pets.map(p => p.id === id ? { ...p, ...fields } : p);
   } else {
     const newId = crypto.randomUUID();
-    await db(`INSERT INTO pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, ?)`,
+    await db(`INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, ?)`,
       [newId, fields.name, fields.species, fields.emoji, now]);
     pets = [...pets, { id: newId, ...fields, created_at: now }];
     if (!selectedPetId) selectedPetId = newId;
@@ -435,9 +435,9 @@ async function savePet(fields, id = null) {
 
 async function deletePet(id) {
   if (!await hubConfirm({ message: "Delete this pet?", description: "All care data for this pet will be permanently removed.", confirmLabel: "Delete pet" })) return false;
-  await db(`DELETE FROM pets WHERE id = ?`, [id]);
-  await db(`DELETE FROM activities WHERE pet_id = ?`, [id]);
-  await db(`DELETE FROM logs WHERE pet_id = ?`, [id]);
+  await db(`DELETE FROM app_pet_care__pets WHERE id = ?`, [id]);
+  await db(`DELETE FROM app_pet_care__activities WHERE pet_id = ?`, [id]);
+  await db(`DELETE FROM app_pet_care__logs WHERE pet_id = ?`, [id]);
   pets = pets.filter(p => p.id !== id);
   activities = activities.filter(a => a.pet_id !== id);
   if (selectedPetId === id) {
@@ -453,20 +453,20 @@ async function saveActivity(fields, id = null) {
   const petId = actFormPetId ?? selectedPetId;
   const timesJson = JSON.stringify(fields.times ?? []);
   if (id) {
-    await db(`UPDATE activities SET name = ?, icon = ?, schedule_type = ?, interval_hours = ?, times = ? WHERE id = ?`,
+    await db(`UPDATE app_pet_care__activities SET name = ?, icon = ?, schedule_type = ?, interval_hours = ?, times = ? WHERE id = ?`,
       [fields.name, fields.icon, fields.schedule_type, fields.interval_hours ?? null, timesJson, id]);
     activities = activities.map(a => a.id === id ? { ...a, ...fields, times: fields.times ?? [] } : a);
   } else {
     const newId = crypto.randomUUID();
     const order = activities.filter(a => a.pet_id === petId).length;
-    await db(`INSERT INTO activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at)
+    await db(`INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [newId, petId, fields.name, fields.icon, fields.schedule_type,
        fields.interval_hours ?? null, timesJson, order, now]);
     activities = [...activities, { id: newId, pet_id: petId, ...fields, times: fields.times ?? [], sort_order: order }];
     if (fields.lastDoneAt) {
       const logId = crypto.randomUUID();
-      await db(`INSERT INTO logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
+      await db(`INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
         [logId, newId, petId, ME.id, fields.lastDoneAt]);
       lastLogs[newId] = { id: logId, activity_id: newId, pet_id: petId, done_by: ME.id, done_at: fields.lastDoneAt };
     }
@@ -475,8 +475,8 @@ async function saveActivity(fields, id = null) {
 
 async function deleteActivity(id) {
   if (!await hubConfirm({ message: "Delete this activity?", description: "The activity and its log history will be permanently removed.", confirmLabel: "Delete" })) return false;
-  await db(`DELETE FROM activities WHERE id = ?`, [id]);
-  await db(`DELETE FROM logs WHERE activity_id = ?`, [id]);
+  await db(`DELETE FROM app_pet_care__activities WHERE id = ?`, [id]);
+  await db(`DELETE FROM app_pet_care__logs WHERE activity_id = ?`, [id]);
   activities = activities.filter(a => a.id !== id);
   delete lastLogs[id];
   return true;
