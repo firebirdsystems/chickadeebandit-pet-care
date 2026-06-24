@@ -89,9 +89,9 @@ async function dbq(sql, params = []) {
 
 async function load() {
   const [{ rows: pets }, { rows: activities }, { rows: lastLogs }] = await Promise.all([
-    dbq(`SELECT id, name, species, emoji FROM pets ORDER BY name ASC`),
-    dbq(`SELECT id, pet_id, name, icon, schedule_type, interval_hours FROM activities ORDER BY sort_order, created_at`),
-    dbq(`SELECT activity_id, MAX(done_at) AS last_done FROM logs GROUP BY activity_id`),
+    dbq(`SELECT id, name, species, emoji FROM app_pet_care__pets ORDER BY name ASC`),
+    dbq(`SELECT id, pet_id, name, icon, schedule_type, interval_hours FROM app_pet_care__activities ORDER BY sort_order, created_at`),
+    dbq(`SELECT activity_id, MAX(done_at) AS last_done FROM app_pet_care__logs GROUP BY activity_id`),
   ]);
 
   const lastMap = Object.fromEntries(lastLogs.map(r => [r.activity_id, r.last_done]));
@@ -146,7 +146,7 @@ async function load() {
       const cls = hours == null ? "due-ok" : hours <= 0 ? "due-overdue" : hours <= 8 ? "due-soon" : "due-ok";
       const label = dueLabel(hours);
       return `<div class="activity-row">
-        <span class="act-icon">${act.icon ?? "🐾"}</span>
+        <span class="act-icon">${esc(act.icon ?? "🐾")}</span>
         <span class="act-name">${esc(act.name)}</span>
         ${label ? `<span class="due-badge ${cls}">${label}</span>` : ""}
       </div>`;
@@ -154,7 +154,7 @@ async function load() {
 
     return `<div class="pet-section">
       <div class="pet-header">
-        <span class="pet-emoji">${pet.emoji ?? "🐾"}</span>
+        <span class="pet-emoji">${esc(pet.emoji ?? "🐾")}</span>
         <span class="pet-name">${esc(pet.name)}</span>
       </div>
       ${rows}

@@ -24,6 +24,10 @@
     "requires_approval": false
   },
   "storage": "db",
+  "row_policies": {
+    "app_pet_care__pets": { "kind": "adult_writable" },
+    "app_pet_care__activities": { "kind": "adult_writable" }
+  },
   "nav": {
     "label": "Pet Care"
   },

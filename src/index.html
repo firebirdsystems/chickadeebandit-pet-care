@@ -518,7 +518,7 @@ function renderCard(activity) {
     <div class="activity-card" style="--status-color:${color};--status-pct:${pctClamp.toFixed(3)}">
       <div class="card-body">
         <div class="card-top">
-          <span class="card-icon">${activity.icon}</span>
+          <span class="card-icon">${esc(activity.icon)}</span>
           <span class="card-name">${esc(activity.name)}</span>
           <span class="status-dot"></span>
         </div>
@@ -537,7 +537,7 @@ function renderMain() {
 
   const petTabsHtml = pets.length > 1
     ? `<div class="pet-tabs">${pets.map(p =>
-        `<button class="pet-tab ${p.id === selectedPetId ? "active" : ""}" onclick="selectPet('${p.id}')">${p.emoji} ${esc(p.name)}</button>`
+        `<button class="pet-tab ${p.id === selectedPetId ? "active" : ""}" onclick="selectPet('${p.id}')">${esc(p.emoji)} ${esc(p.name)}</button>`
       ).join("")}</div>`
     : "";
 
@@ -558,7 +558,7 @@ function renderMain() {
   document.getElementById("root").innerHTML = `
     <header>
       <div>
-        <h1>${pet ? `${pet.emoji} ${esc(pet.name)}` : "🐾 Pet Care"}</h1>
+        <h1>${pet ? `${esc(pet.emoji)} ${esc(pet.name)}` : "🐾 Pet Care"}</h1>
         <div class="sub">${pet?.species ? esc(pet.species) : "Care tracker"}</div>
       </div>
       ${meIsAdmin ? `<button class="btn btn-icon" onclick="openSettings()" title="Settings">⚙️</button>` : ""}
@@ -578,7 +578,7 @@ function renderSettingsModal() {
     const pActs = activities.filter(a => a.pet_id === p.id);
     const actsHtml = pActs.map(a => `
       <div class="act-row">
-        <div class="info"><strong>${a.icon} ${esc(a.name)}</strong> <span class="sched-meta">${schedLabel(a)}</span></div>
+        <div class="info"><strong>${esc(a.icon)} ${esc(a.name)}</strong> <span class="sched-meta">${schedLabel(a)}</span></div>
         <div style="display:flex;gap:4px;flex-shrink:0">
           <button class="btn btn-ghost btn-sm" onclick="openActivityForm('${a.id}')">Edit</button>
           <button class="btn btn-danger btn-sm" onclick="doDeleteActivity('${a.id}')">Delete</button>
