@@ -286,7 +286,7 @@
 </div>
 
 <script type="module">
-import { memberColor, initial, esc, isAdult, hubConfirm } from "/hub-sdk.js";
+import { hubAlert, memberColor, initial, esc, isAdult, hubConfirm } from "/hub-sdk.js";
 import { formatDuration, statusColor, activityStatusInterval, activityStatusTimes } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
@@ -772,7 +772,7 @@ window.submitActivity = async function(existingId) {
     lastDoneAt = lastDoneVal ? new Date(lastDoneVal).toISOString() : null;
   } else {
     times = [...document.querySelectorAll(".time-input")].map(i => i.value).filter(Boolean).sort();
-    if (!times.length) { alert("Add at least one time."); return; }
+    if (!times.length) { hubAlert("Add at least one time."); return; }
   }
 
   await saveActivity({ name, icon, schedule_type: sched, interval_hours, times, lastDoneAt }, existingId || null);
