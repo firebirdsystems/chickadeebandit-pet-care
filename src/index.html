@@ -491,6 +491,9 @@ function openModal(html) {
   modalEl.innerHTML = `<div class="modal">${html}</div>`;
   modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
   document.body.appendChild(modalEl);
+  // Programmatic focus works inside cross-origin iframes (unlike the autofocus
+  // attribute, which the browser blocks) because it rides the user's click gesture.
+  modalEl.querySelector("[data-autofocus]")?.focus();
 }
 function closeModal() { modalEl?.remove(); modalEl = null; }
 
@@ -643,7 +646,7 @@ function openPetForm(id = null) {
     </div>
     <div class="form-group">
       <label>Name</label>
-      <input id="pf-name" type="text" value="${esc(pet?.name ?? "")}" placeholder="Buddy" autofocus />
+      <input id="pf-name" type="text" value="${esc(pet?.name ?? "")}" placeholder="Buddy" data-autofocus />
     </div>
     <div class="form-group">
       <label>Species / Breed <span class="muted-label">(optional)</span></label>
@@ -703,7 +706,7 @@ function openActivityForm(id = null, petId = null) {
     </div>
     <div class="form-group">
       <label>Activity name</label>
-      <input id="af-name" type="text" value="${esc(act?.name ?? "")}" placeholder="Feeding, Medication, Potty Break…" autofocus />
+      <input id="af-name" type="text" value="${esc(act?.name ?? "")}" placeholder="Feeding, Medication, Potty Break…" data-autofocus />
     </div>
     <div class="form-group">
       <label>Schedule</label>
