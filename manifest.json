@@ -2,7 +2,7 @@
   "id": "pet-care",
   "name": "Pet Care",
   "version": "1.1.0",
-  "description": "Track pet care activities \u2014 feeding, medication, potty breaks, walks, and anything else you configure. Color-coded urgency shows when each activity is due. One tap to log it.",
+  "description": "Track pet care activities — feeding, medication, potty breaks, walks, and anything else you configure. Color-coded urgency shows when each activity is due. One tap to log it.",
   "entrypoint": "index.html",
   "runtime": "static",
   "category": "family",
@@ -43,13 +43,38 @@
   "resource_limits": {
     "max_db_bytes": 52428800
   },
-  "icon": "\ud83d\udc3e",
+  "icon": "🐾",
   "ai_access": {
     "allowed": true,
     "mode": "read",
     "db_exports": [
       "pets_summary",
       "recent_activity"
+    ]
+  },
+  "digest": {
+    "kind": "recurring_due",
+    "activity_table": "activities",
+    "activity_label_column": "name",
+    "activity_icon_column": "icon",
+    "interval_column": "interval_hours",
+    "interval_unit": "hours",
+    "default_interval": 24,
+    "parent": {
+      "table": "pets",
+      "activity_fk_column": "pet_id",
+      "parent_label_column": "name"
+    },
+    "last_done": {
+      "table": "logs",
+      "activity_fk_column": "activity_id",
+      "timestamp_column": "done_at"
+    },
+    "filters": [
+      {
+        "column": "schedule_type",
+        "equals": "interval"
+      }
     ]
   }
 }
