@@ -529,7 +529,7 @@ function renderCard(activity) {
         ${lastByHtml}
         <div class="progress-track"><div class="progress-fill"></div></div>
       </div>
-      <button class="done-btn" onclick="markDone('${activity.id}')">✓ Done</button>
+      <button class="done-btn" data-activity-id="${esc(activity.id)}" onclick="markDone(this.dataset.activityId)">✓ Done</button>
     </div>
   `;
 }
@@ -540,7 +540,7 @@ function renderMain() {
 
   const petTabsHtml = pets.length > 1
     ? `<div class="pet-tabs">${pets.map(p =>
-        `<button class="pet-tab ${p.id === selectedPetId ? "active" : ""}" onclick="selectPet('${p.id}')">${esc(p.emoji)} ${esc(p.name)}</button>`
+        `<button class="pet-tab ${p.id === selectedPetId ? "active" : ""}" data-pet-id="${esc(p.id)}" onclick="selectPet(this.dataset.petId)">${esc(p.emoji)} ${esc(p.name)}</button>`
       ).join("")}</div>`
     : "";
 
@@ -583,8 +583,8 @@ function renderSettingsModal() {
       <div class="act-row">
         <div class="info"><strong>${esc(a.icon)} ${esc(a.name)}</strong> <span class="sched-meta">${schedLabel(a)}</span></div>
         <div style="display:flex;gap:4px;flex-shrink:0">
-          <button class="btn btn-ghost btn-sm" onclick="openActivityForm('${a.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="doDeleteActivity('${a.id}')">Delete</button>
+          <button class="btn btn-ghost btn-sm" data-act-id="${esc(a.id)}" onclick="openActivityForm(this.dataset.actId)">Edit</button>
+          <button class="btn btn-danger btn-sm" data-act-id="${esc(a.id)}" onclick="doDeleteActivity(this.dataset.actId)">Delete</button>
         </div>
       </div>`).join("");
     return `
@@ -595,13 +595,13 @@ function renderSettingsModal() {
             ${p.species ? `<span class="muted"> · ${esc(p.species)}</span>` : ""}
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
-            <button class="btn btn-ghost btn-sm" onclick="openPetForm('${p.id}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="doDeletePet('${p.id}')">Delete</button>
+            <button class="btn btn-ghost btn-sm" data-pet-id="${esc(p.id)}" onclick="openPetForm(this.dataset.petId)">Edit</button>
+            <button class="btn btn-danger btn-sm" data-pet-id="${esc(p.id)}" onclick="doDeletePet(this.dataset.petId)">Delete</button>
           </div>
         </div>
         <div class="act-list">
           ${actsHtml || `<div class="empty-sm">No activities yet.</div>`}
-          <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="openActivityForm(null,'${p.id}')">+ Add Activity</button>
+          <button class="btn btn-ghost btn-sm" style="margin-top:6px" data-pet-id="${esc(p.id)}" onclick="openActivityForm(null, this.dataset.petId)">+ Add Activity</button>
         </div>
       </div>`;
   }).join("") || `<div class="empty-sm">No pets yet.</div>`;
@@ -654,7 +654,7 @@ function openPetForm(id = null) {
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="backToSettings()">Back</button>
-      <button class="btn btn-primary" onclick="submitPet('${id ?? ""}')">${pet ? "Save" : "Add Pet"}</button>
+      <button class="btn btn-primary" data-pet-id="${esc(id ?? "")}" onclick="submitPet(this.dataset.petId)">${pet ? "Save" : "Add Pet"}</button>
     </div>
   `);
 }
@@ -737,7 +737,7 @@ function openActivityForm(id = null, petId = null) {
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="backToSettings()">Back</button>
-      <button class="btn btn-primary" onclick="submitActivity('${id ?? ""}')">${act ? "Save" : "Add Activity"}</button>
+      <button class="btn btn-primary" data-act-id="${esc(id ?? "")}" onclick="submitActivity(this.dataset.actId)">${act ? "Save" : "Add Activity"}</button>
     </div>
   `);
 }
