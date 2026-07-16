@@ -456,6 +456,16 @@ async function saveActivity(fields, id = null) {
     await db(`UPDATE app_pet_care__activities SET name = ?, icon = ?, schedule_type = ?, interval_hours = ?, times = ? WHERE id = ?`,
       [fields.name, fields.icon, fields.schedule_type, fields.interval_hours ?? null, timesJson, id]);
     activities = activities.map(a => a.id === id ? { ...a, ...fields, times: fields.times ?? [] } : a);
+    if (fields.lastDoneAt) {
+      const { rows } = await db(`SELECT id FROM app_pet_care__logs WHERE activity_id = ? ORDER BY done_at DESC LIMIT 1`, [id]);
+      const existing = rows?.[0]?.id;
+      if (existing) {
+        await db(`UPDATE app_pet_care__logs SET done_at = ? WHERE id = ?`, [fields.lastDoneAt, existing]);
+      } else {
+        const logId = crypto.randomUUID();
+        await db(`INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`, [logId, id, petId, ME.id, fields.lastDoneAt]);
+      }
+    }
   } else {
     const newId = crypto.randomUUID();
     const order = activities.filter(a => a.pet_id === petId).length;
@@ -680,11 +690,16 @@ window.submitPet = async function(existingId) {
 // ─── Activity form ────────────────────────────────────────────────────────
 const ACT_ICONS = ["🍽️","💊","🚽","🦮","🛁","😴","💉","🦷","👁️","✂️","🎾","💧","🌿","🧸","🏃","🐾"];
 
-function openActivityForm(id = null, petId = null) {
+async function openActivityForm(id = null, petId = null) {
   actFormPetId = id ? (activities.find(a => a.id === id)?.pet_id ?? selectedPetId) : (petId ?? selectedPetId);
   const act   = id ? activities.find(a => a.id === id) : null;
   const sched = act?.schedule_type ?? "interval";
   const sel   = act?.icon ?? "🍽️";
+  let lastDoneVal = "";
+  if (act) {
+    const { rows } = await db(`SELECT done_at FROM app_pet_care__logs WHERE activity_id = ? ORDER BY done_at DESC LIMIT 1`, [id]);
+    if (rows?.[0]?.done_at) lastDoneVal = new Date(rows[0].done_at).toISOString().slice(0, 10);
+  }
 
   const iconGrid = ACT_ICONS.map(e =>
     `<button type="button" class="emoji-btn ${sel === e ? "selected" : ""}" onclick="pickActIcon(this,'${e}')">${e}</button>`
@@ -726,7 +741,7 @@ function openActivityForm(id = null, petId = null) {
         <label>Interval (hours)</label>
         <input id="af-hours" type="number" min="0.25" max="168" step="0.25" value="${act?.interval_hours ?? 8}" style="max-width:140px" />
       </div>
-      ${!act ? `<div class="form-group"><label>Last done <span class="muted-label">(optional)</span></label><input id="af-lastdone" type="date" style="max-width:180px" max="${new Date().toISOString().slice(0,10)}" /></div>` : ""}
+      <div class="form-group"><label>Last done <span class="muted-label">(optional)</span></label><input id="af-lastdone" type="date" style="max-width:180px" max="${new Date().toISOString().slice(0,10)}" value="${lastDoneVal}" /></div>
     </div>
     <div id="sched-times" style="${sched !== "times" ? "display:none" : ""}">
       <div class="form-group">
