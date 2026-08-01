@@ -435,9 +435,12 @@ async function savePet(fields, id = null) {
 
 async function deletePet(id) {
   if (!await hubConfirm({ message: "Delete this pet?", description: "All care data for this pet will be permanently removed.", confirmLabel: "Delete pet" })) return false;
+  // One statement: manifest delete_cascades takes the pet's activities and logs
+  // with it inside the same transactional batch. This used to be three separate
+  // calls with the parent going first, so a failure (or a closed tab) after the
+  // first left activities and logs orphaned under a pet that no longer exists —
+  // invisible to the UI and to the recurring_due digest, and unreachable.
   await db(`DELETE FROM app_pet_care__pets WHERE id = ?`, [id]);
-  await db(`DELETE FROM app_pet_care__activities WHERE pet_id = ?`, [id]);
-  await db(`DELETE FROM app_pet_care__logs WHERE pet_id = ?`, [id]);
   pets = pets.filter(p => p.id !== id);
   activities = activities.filter(a => a.pet_id !== id);
   if (selectedPetId === id) {
@@ -485,8 +488,8 @@ async function saveActivity(fields, id = null) {
 
 async function deleteActivity(id) {
   if (!await hubConfirm({ message: "Delete this activity?", description: "The activity and its log history will be permanently removed.", confirmLabel: "Delete" })) return false;
+  // The activity's logs go with it via delete_cascades (see deletePet).
   await db(`DELETE FROM app_pet_care__activities WHERE id = ?`, [id]);
-  await db(`DELETE FROM app_pet_care__logs WHERE activity_id = ?`, [id]);
   activities = activities.filter(a => a.id !== id);
   delete lastLogs[id];
   return true;
