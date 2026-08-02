@@ -63,6 +63,12 @@
     "label": "Pet Care",
     "size": "small"
   },
+  "publishes": [
+    "pet_care.logged"
+  ],
+  "publish_acls": {
+    "pet_care.logged": { "require_role": "member" }
+  },
   "glance": {
     "source": {
       "kind": "recurring_due"
