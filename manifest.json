@@ -25,6 +25,10 @@
     "requires_approval": false
   },
   "storage": "db",
+  "preload": {
+    "pets": {"sql": "SELECT * FROM app_pet_care__pets ORDER BY created_at"},
+    "activities": {"sql": "SELECT * FROM app_pet_care__activities ORDER BY pet_id, sort_order, created_at"}
+  },
   "db_encryption": "off",
     "member_references": {
       "logs": {
