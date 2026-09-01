@@ -53,6 +53,9 @@
     ]
   },
   "row_policies": {
+    "logs": {
+      "kind": "member_writable"
+    },
     "pets": {
       "kind": "adult_writable"
     },
