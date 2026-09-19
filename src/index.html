@@ -17,7 +17,7 @@
       --accent:       var(--hub-primary, #111827);
       --accent-fg:    var(--hub-primary-fg, #ffffff);
       --accent-hover: var(--hub-primary-hover, #374151);
-      --accent-light: #f3f4f6;
+      --accent-light: var(--bg);
       --green-rgb: 22, 163, 74; --amber-rgb: 217, 119, 6; --red-rgb: 220, 38, 38;
       --radius:       var(--hub-radius, 0.5rem);
       --shadow:       0 1px 3px rgba(0,0,0,.07);
@@ -43,7 +43,7 @@
       padding: 14px 18px;
       background: var(--accent);
       border-radius: var(--radius);
-      color: white;
+      color: var(--accent-fg);
     }
     header h1 { font-size: 1.2rem; font-weight: 700; }
     header .sub { font-size: 0.8rem; opacity: .75; margin-top: 1px; }
@@ -56,7 +56,7 @@
       cursor: pointer; border: none; transition: opacity .15s;
     }
     .btn:disabled { opacity: .5; cursor: default; }
-    .btn-primary  { background: var(--accent); color: white; }
+    .btn-primary  { background: var(--accent); color: var(--accent-fg); }
     .btn-primary:hover:not(:disabled)  { opacity: .88; }
     .btn-ghost    { background: transparent; color: var(--muted); border: 1.5px solid var(--border); }
     .btn-ghost:hover  { border-color: var(--text); color: var(--text); }
@@ -181,7 +181,7 @@
       cursor: pointer; font-size: 0.85rem; font-weight: 600;
       color: var(--muted); background: transparent; transition: all .15s;
     }
-    .tab.active { background: white; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    .tab.active { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
 
     /* ── Modal ───────────────────────────────────────────── */
     .modal-backdrop {
@@ -192,7 +192,7 @@
     }
     @media (min-width: 480px) { .modal-backdrop { align-items: center; padding: 20px; } }
     .modal {
-      background: white; border-radius: var(--radius) var(--radius) 0 0;
+      background: var(--card); border-radius: var(--radius) var(--radius) 0 0;
       width: 100%; max-width: 520px; padding: 22px;
       max-height: 92vh; overflow-y: auto;
     }
@@ -211,7 +211,7 @@
     .form-group select {
       width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
       padding: 9px 12px; font-size: 0.95rem; outline: none;
-      transition: border-color .15s; background: white; font-family: inherit;
+      transition: border-color .15s; background: var(--card); font-family: inherit;
     }
     .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
 
