@@ -1,6 +1,6 @@
 # Pet Care
 
-A [Chickadee Bandit](http://chickadeebandit.com) app.
+A [Chickadee Bandit](https://chickadeebandit.com/app-library/pet-care) app.
 
 Track pet care activities — feeding, medication, potty breaks, walks, and anything else you configure. Color-coded urgency shows when each activity is due. One tap to log it.
 
