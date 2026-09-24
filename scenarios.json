@@ -1,0 +1,124 @@
+{
+  "scenarios": [
+    {
+      "name": "only adults add or change pets and care activities; a child can read them",
+      "members": { "parent": "adult", "child": "child" },
+      "steps": [
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, ?)",
+          "params": ["p1", "Rex", "dog", "🐶", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, created_at) VALUES (?, ?, ?, ?, 'interval', 12, ?)",
+          "params": ["a1", "p1", "Feed", "🍖", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "child",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, ?)",
+          "params": ["p2", "Tiger", "cat", "🐱", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "child",
+          "sql": "UPDATE app_pet_care__activities SET interval_hours = 1 WHERE id = ?",
+          "params": ["a1"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "child",
+          "sql": "DELETE FROM app_pet_care__pets WHERE id = ?",
+          "params": ["p1"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "child",
+          "sql": "SELECT p.id AS pet_id, a.id AS activity_id, a.interval_hours FROM app_pet_care__pets p JOIN app_pet_care__activities a ON a.pet_id = p.id",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "pet_id": "p1", "activity_id": "a1", "interval_hours": 12 }] }
+        }
+      ]
+    },
+    {
+      "name": "any member, including a child, can log a care activity and it shows in recent_activity",
+      "members": { "parent": "adult", "child": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p1', 'Rex', 'dog', '🐶', '2026-01-01T00:00:00Z')"
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, created_at) VALUES ('a1', 'p1', 'Walk', '🦮', 'interval', 8, '2026-01-01T00:00:00Z')"
+        },
+        {
+          "action": "db",
+          "as": "child",
+          "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)",
+          "params": ["l1", "a1", "p1", "{{child}}", "2026-01-02T08:00:00Z"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "named",
+          "as": "parent",
+          "kind": "query",
+          "name": "recent_activity",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "l1", "activity_name": "Walk", "pet_name": "Rex" }] }
+        },
+        {
+          "action": "named",
+          "as": "parent",
+          "kind": "query",
+          "name": "pets_summary",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "p1", "total_logs": 1, "last_activity_at": "2026-01-02T08:00:00Z" }] }
+        }
+      ]
+    },
+    {
+      "name": "deleting a pet removes its activities and care log; other pets are untouched",
+      "members": { "parent": "adult" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p1', 'Rex', 'dog', '🐶', '2026-01-01T00:00:00Z'), ('p2', 'Tiger', 'cat', '🐱', '2026-01-01T00:00:00Z')"
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, created_at) VALUES ('a1', 'p1', 'Feed', '2026-01-01T00:00:00Z'), ('a2', 'p2', 'Feed', '2026-01-01T00:00:00Z')"
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES ('l1', 'a1', 'p1', ?, '2026-01-02T00:00:00Z'), ('l2', 'a2', 'p2', ?, '2026-01-02T00:00:00Z')",
+          "params": ["{{parent}}", "{{parent}}"]
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "DELETE FROM app_pet_care__pets WHERE id = ?",
+          "params": ["p1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id FROM app_pet_care__activities",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "a2" }] }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id FROM app_pet_care__logs",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "l2" }] }
+        }
+      ]
+    }
+  ]
+}
