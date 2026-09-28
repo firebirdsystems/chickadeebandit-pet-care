@@ -272,6 +272,27 @@
     .act-row:last-child { border-bottom: none; }
     .act-row .info { flex: 1; font-size: 0.83rem; }
 
+    .form-group input[type="date"],
+    .form-group textarea {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 9px 12px; font-size: 0.95rem; outline: none;
+      transition: border-color .15s; background: var(--card); font-family: inherit; color: var(--text);
+    }
+    .form-group textarea { min-height: 90px; resize: vertical; }
+    .form-group textarea:focus, .form-group input[type="date"]:focus { border-color: var(--accent); }
+    .date-row { display: flex; gap: 10px; }
+    .date-row > div { flex: 1; }
+    .check-list { display: flex; flex-direction: column; gap: 6px; }
+    .check-opt { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; }
+    .check-opt input { accent-color: var(--accent); width: 16px; height: 16px; }
+    .hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; }
+    .sit-row .info .sched-meta { display: block; }
+    .form-error { color: #dc2626; font-size: 0.85rem; margin-top: 8px; }
+    .form-group .check-opt {
+      display: flex; margin: 0; text-transform: none; letter-spacing: 0;
+      font-size: 0.9rem; font-weight: 500; color: var(--text);
+    }
+
     /* ── Misc ────────────────────────────────────────────── */
     .empty       { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
     .empty-sm    { font-size: 0.85rem; color: var(--muted); padding: 8px 0; }
@@ -286,8 +307,16 @@
 </div>
 
 <script type="module">
-import { hubAlert, memberColor, initial, esc, isAdult, hubConfirm } from "/hub-sdk.js";
-import { formatDuration, statusColor, activityStatusInterval, activityStatusTimes, localDateToISO, isoToLocalDateInput } from "./logic.js";
+import {
+  hubAlert, memberColor, initial, esc, isAdult, hubConfirm,
+  createShareHelper, activeShareLinks, SHARE_EXPIRY_CHOICES, DEFAULT_SHARE_EXPIRY_HOURS,
+} from "/hub-sdk.js";
+import {
+  formatDuration, statusColor, activityStatusInterval, activityStatusTimes, localDateToISO, isoToLocalDateInput,
+  logAuthor, schedLabel, lastDoneToSave, sitSyncBlocksShare, planSitLinkRevoke, sitPetIds, sitIsOpen, sitTaskRows, sitTaskStatements, sitDates,
+  sitExpiryChoice, CARE_SNAPSHOT_STATEMENTS, parseCareSnapshot, refreshSitChecklists,
+} from "./logic.js";
+import { createShareUi, createOverlayView } from "./share.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB      = window.__DB_URL      ?? "";
@@ -319,6 +348,36 @@ let lastLogs     = {}; // activityId → most recent log row
 let selectedPetId  = null;
 let actFormPetId   = null; // pet context for the open activity form
 let refreshTimer   = null;
+let sits           = []; // sitter links' sits, newest first
+let sitTasks       = {}; // sitId → its checklist rows, in display order
+
+// ─── Sitter share links (manifest.shareable.sit) ──────────────────────────
+// A sit is a public checklist for a pet-sitter who is not a member: each tick
+// lands in logs with done_by "sitter", so it clears overdue like a member's
+// tap. Only adults create sits (sits are adult_writable) and mint links.
+const share = createShareHelper(window.__SHARE_CREATE_URL, window.__SHARE_REVOKE_URL, window.__SHARE_LIST_URL);
+const shareView = createOverlayView(document);
+const shareUi = createShareUi({
+  share,
+  itemType: "sit",
+  noun: "sit",
+  writable: true,
+  writableVerb: "tick off tasks",
+  scopeHtml: () => "The page shows the sit’s dates and instructions, and each chosen pet’s tasks with their schedule and when each was last done. The sitter types their name when they tick a task; it shows in your pets’ history. <strong>Anyone with the link can see the instructions — add a password if they include a door code.</strong>",
+  esc,
+  confirm: (message, opts) => hubConfirm({ message, ...opts, destructive: true }),
+  writeText: (text) => navigator.clipboard.writeText(text),
+  activeLinks: activeShareLinks,
+  expiryChoices: SHARE_EXPIRY_CHOICES,
+  defaultExpiryHours: DEFAULT_SHARE_EXPIRY_HOURS,
+  // Looked up by id: the sit's dates can change while the panel is open.
+  expiryFor: (item) => sitExpiryChoice(sits.find(x => x.id === item.id)),
+  getMe: () => ME,
+  isAdmin: () => window.__IS_ADMIN === true,
+  memberName: (id) => members.find(m => m.id === id)?.name ?? "",
+  view: shareView,
+});
+shareView.bind(shareUi);
 
 // ─── DB helper ────────────────────────────────────────────────────────────
 async function db(sql, params = []) {
@@ -329,6 +388,19 @@ async function db(sql, params = []) {
     body: JSON.stringify({ sql, params }),
   });
   return res.json();
+}
+
+/** One atomic /api/db batch: every statement applies, or none does. */
+async function dbBatch(statements) {
+  if (!DB) return [];
+  const res = await fetch(DB, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ statements }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || "Could not save");
+  return body.results ?? [];
 }
 
 // ─── DB init ──────────────────────────────────────────────────────────────
@@ -390,10 +462,7 @@ function activityStatus(activity) {
 
   function lastByInfo() {
     if (!log) return null;
-    return {
-      member: members.find(m => m.id === log.done_by) ?? null,
-      agoMin: (now - new Date(log.done_at)) / 60000,
-    };
+    return { ...logAuthor(log, members), agoMin: (now - new Date(log.done_at)) / 60000 };
   }
 
   if (activity.schedule_type === "interval") {
@@ -423,8 +492,9 @@ async function markDone(activityId) {
   try {
     await db(`INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
       [id, activityId, selectedPetId, ME.id, now]);
-    // Prune old logs in background — table stays at 1 row per activity, no effect on UI state
-    db(`DELETE FROM app_pet_care__logs WHERE activity_id = ? AND id != ?`, [activityId, id]).catch(() => {});
+    // Prune old logs in background — no effect on UI state. A sitter's ticks
+    // are kept: they are the sit's record, shown on its share page.
+    db(`DELETE FROM app_pet_care__logs WHERE activity_id = ? AND id != ? AND sit_id = ''`, [activityId, id]).catch(() => {});
     const act = activities.find(a => a.id === activityId);
     const pet = pets.find(p => p.id === selectedPetId);
     await publishEvent("pet_care.logged", id, {
@@ -484,7 +554,8 @@ async function saveActivity(fields, id = null) {
       [fields.name, fields.icon, fields.schedule_type, fields.interval_hours ?? null, timesJson, id]);
     activities = activities.map(a => a.id === id ? { ...a, ...fields, times: fields.times ?? [] } : a);
     if (fields.lastDoneAt) {
-      const { rows } = await db(`SELECT id FROM app_pet_care__logs WHERE activity_id = ? ORDER BY done_at DESC LIMIT 1`, [id]);
+      // Never a sitter's tick: that is their record of the sit.
+      const { rows } = await db(`SELECT id FROM app_pet_care__logs WHERE activity_id = ? AND sit_id = '' ORDER BY done_at DESC LIMIT 1`, [id]);
       const existing = rows?.[0]?.id;
       if (existing) {
         await db(`UPDATE app_pet_care__logs SET done_at = ? WHERE id = ?`, [fields.lastDoneAt, existing]);
@@ -542,8 +613,8 @@ function renderCard(activity) {
 
   let lastByHtml = "";
   if (lastBy) {
-    const name  = lastBy.member?.name ?? "Someone";
-    const color = mc(lastBy.member?.id ?? "");
+    const name  = lastBy.name;
+    const color = mc(lastBy.member?.id ?? (lastBy.sitter ? "sitter" : ""));
     const ago   = formatDuration(lastBy.agoMin);
     lastByHtml = `
       <div class="card-last-by">
@@ -601,7 +672,10 @@ function renderMain() {
         <h1>${pet ? `${esc(pet.emoji)} ${esc(pet.name)}` : "🐾 Pet Care"}</h1>
         <div class="sub">${pet?.species ? esc(pet.species) : "Care tracker"}</div>
       </div>
-      ${meIsAdmin ? `<button class="btn btn-icon" onclick="openSettings()" title="Settings">⚙️</button>` : ""}
+      ${meIsAdmin ? `<div style="display:flex;gap:6px">
+        ${DB ? `<button class="btn btn-icon" onclick="openSitters()" title="Sitter links" aria-label="Sitter links" data-testid="open-sitters">🧳</button>` : ""}
+        <button class="btn btn-icon" onclick="openSettings()" title="Settings">⚙️</button>
+      </div>` : ""}
     </header>
     ${petTabsHtml}
     ${bodyHtml}
@@ -610,15 +684,11 @@ function renderMain() {
 
 // ─── Settings modal ───────────────────────────────────────────────────────
 function renderSettingsModal() {
-  const schedLabel = (a) => a.schedule_type === "interval"
-    ? `Every ${a.interval_hours}h`
-    : `${(a.times ?? []).join(", ")}`;
-
   const petsHtml = pets.map(p => {
     const pActs = activities.filter(a => a.pet_id === p.id);
     const actsHtml = pActs.map(a => `
       <div class="act-row">
-        <div class="info"><strong>${esc(a.icon)} ${esc(a.name)}</strong> <span class="sched-meta">${schedLabel(a)}</span></div>
+        <div class="info"><strong>${esc(a.icon)} ${esc(a.name)}</strong> <span class="sched-meta">${esc(schedLabel(a))}</span></div>
         <div style="display:flex;gap:4px;flex-shrink:0">
           <button class="btn btn-ghost btn-sm" data-act-id="${esc(a.id)}" onclick="openActivityForm(this.dataset.actId)">Edit</button>
           <button class="btn btn-danger btn-sm" data-act-id="${esc(a.id)}" onclick="doDeleteActivity(this.dataset.actId)">Delete</button>
@@ -657,11 +727,11 @@ function renderSettingsModal() {
 
 window.doDeletePet = async function(id) {
   const ok = await deletePet(id);
-  if (ok) { renderSettingsModal(); renderMain(); }
+  if (ok) { renderSettingsModal(); renderMain(); syncSits(); }
 };
 window.doDeleteActivity = async function(id) {
   const ok = await deleteActivity(id);
-  if (ok) { renderSettingsModal(); renderMain(); }
+  if (ok) { renderSettingsModal(); renderMain(); syncSits(); }
 };
 
 // ─── Pet form ─────────────────────────────────────────────────────────────
@@ -712,6 +782,7 @@ window.submitPet = async function(existingId) {
   await savePet({ name, species, emoji }, existingId || null);
   renderSettingsModal();
   renderMain();
+  syncSits();
 };
 
 // ─── Activity form ────────────────────────────────────────────────────────
@@ -768,7 +839,7 @@ async function openActivityForm(id = null, petId = null) {
         <label>Interval (hours)</label>
         <input id="af-hours" type="number" min="0.25" max="168" step="0.25" value="${act?.interval_hours ?? 8}" style="max-width:140px" />
       </div>
-      <div class="form-group"><label>Last done <span class="muted-label">(optional)</span></label><input id="af-lastdone" type="date" style="max-width:180px" max="${isoToLocalDateInput(new Date().toISOString())}" value="${lastDoneVal}" /></div>
+      <div class="form-group"><label>Last done <span class="muted-label">(optional)</span></label><input id="af-lastdone" type="date" style="max-width:180px" max="${isoToLocalDateInput(new Date().toISOString())}" value="${lastDoneVal}" data-initial="${lastDoneVal}" /></div>
     </div>
     <div id="sched-times" style="${sched !== "times" ? "display:none" : ""}">
       <div class="form-group">
@@ -813,8 +884,9 @@ window.submitActivity = async function(existingId) {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
   if (sched === "interval") {
     interval_hours = parseFloat(document.getElementById("af-hours").value) || 8;
-    const lastDoneVal = document.getElementById("af-lastdone")?.value;
-    lastDoneAt = localDateToISO(lastDoneVal);
+    // Only when the member changed it (see lastDoneToSave).
+    const lastDoneEl = document.getElementById("af-lastdone");
+    if (lastDoneEl) lastDoneAt = lastDoneToSave(lastDoneEl.value, lastDoneEl.dataset.initial);
   } else {
     times = [...document.querySelectorAll(".time-input")].map(i => i.value).filter(Boolean).sort();
     if (!times.length) { hubAlert("Add at least one time."); return; }
@@ -824,6 +896,7 @@ window.submitActivity = async function(existingId) {
   await loadLastLogs();
   renderSettingsModal();
   renderMain();
+  syncSits();
 };
 
 window.backToSettings = function() { renderSettingsModal(); };
@@ -838,6 +911,269 @@ window.selectPet = async function(id) {
   await loadLastLogs();
   renderMain();
 };
+
+// ─── Sits ─────────────────────────────────────────────────────────────────
+function todayStr() { return isoToLocalDateInput(new Date().toISOString()); }
+
+/** Pets, activities, sits and their checklists, read fresh in one batch.
+ *  Throws when any read fails. Every checklist write is computed from this,
+ *  never from the page's own `pets` and `activities`: those can be empty after
+ *  a failed load, or hours old in a tab another adult has since edited past,
+ *  and a checklist built from either would delete or resurrect tasks. */
+async function readCare() {
+  return parseCareSnapshot(await dbBatch(CARE_SNAPSHOT_STATEMENTS));
+}
+
+function applySits(snap) {
+  sits = snap.sits;
+  sitTasks = {};
+  for (const row of snap.tasks) (sitTasks[row.sit_id] ??= []).push(row);
+}
+
+async function loadSits() {
+  const snap = await readCare();
+  applySits(snap);
+  return snap;
+}
+
+/** Bring each open sit's checklist in line with its pets' activities — a
+ *  renamed task, a changed schedule, an activity added or deleted — so the
+ *  sitter's page follows edits. One atomic batch per sit that drifted. Adults
+ *  only: sit_tasks is adult_writable. */
+async function refreshOpenSits() {
+  if (!isAdult(ME)) return { ok: true, failed: [] };
+  const { snap, changed, failed } = await refreshSitChecklists({
+    read: readCare, write: dbBatch, today: todayStr(), newId: () => crypto.randomUUID(),
+  });
+  applySits(snap);
+  if (changed) await loadSits();
+  return { ok: true, failed };
+}
+
+/** Reload the sits and refresh their checklists, one run at a time. Never
+ *  rejects: resolves to { ok, failed } — ok false when the read failed, and
+ *  `failed` the sits whose rewrite was refused. Background callers ignore it
+ *  (the next run retries); sharing checks it. */
+let sitSync = Promise.resolve();
+function syncSits() {
+  if (!DB || !isAdult(ME)) return Promise.resolve({ ok: true, failed: [] });
+  const run = sitSync.then(refreshOpenSits).catch(() => ({ ok: false, failed: [] }));
+  sitSync = run;
+  return run;
+}
+
+function renderSittersModal() {
+  const today = todayStr();
+  const rows = sits.map(sit => {
+    const archived = Number(sit.archived) === 1;
+    const state = archived ? "Archived" : sitIsOpen(sit, today) ? "" : "Ended";
+    const petNames = sitPetIds(sit)
+      .map(id => pets.find(p => p.id === id))
+      .filter(Boolean)
+      .map(p => `${p.emoji} ${p.name}`)
+      .join(", ");
+    const count = (sitTasks[sit.id] ?? []).length;
+    const meta = [sitDates(sit), state].filter(Boolean).join(" · ");
+    return `
+      <div class="settings-row sit-row" data-testid="sit-row">
+        <div class="info">
+          <strong>${esc(sit.title)}</strong>
+          ${meta ? `<span class="sched-meta">${esc(meta)}</span>` : ""}
+          <span class="sched-meta">${esc(petNames || "No pets")} · ${count} ${count === 1 ? "task" : "tasks"}</span>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
+          ${!archived && share.enabled ? `<button class="btn btn-primary btn-sm" data-sit-id="${esc(sit.id)}" onclick="shareSit(this.dataset.sitId)" data-testid="sit-share">Share</button>` : ""}
+          ${archived && share.enabled ? `<button class="btn btn-ghost btn-sm" data-sit-id="${esc(sit.id)}" onclick="revokeSitLinks(this.dataset.sitId)" data-testid="sit-revoke-links">Revoke links</button>` : ""}
+          <button class="btn btn-ghost btn-sm" data-sit-id="${esc(sit.id)}" onclick="openSitForm(this.dataset.sitId)">Edit</button>
+          <button class="btn btn-ghost btn-sm" data-sit-id="${esc(sit.id)}" onclick="toggleSitArchived(this.dataset.sitId)">${archived ? "Restore" : "Archive"}</button>
+          <button class="btn btn-danger btn-sm" data-sit-id="${esc(sit.id)}" onclick="doDeleteSit(this.dataset.sitId)">Delete</button>
+        </div>
+      </div>`;
+  }).join("") || `<div class="empty-sm">No sits yet.</div>`;
+
+  openModal(`
+    <div class="settings-header">
+      <h3>🧳 Sitter links</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Done</button>
+    </div>
+    <p class="hint">Going away? Make a sit and send the sitter its link. They tick off tasks without an account, and each tick counts here just like yours. Archiving a sit closes its links.</p>
+    ${rows}
+    <div style="margin-top:14px">
+      <button class="btn btn-primary btn-sm" onclick="openSitForm()" data-testid="new-sit">+ New sit</button>
+    </div>
+  `);
+}
+
+function openSitForm(id = null) {
+  const sit = id ? sits.find(x => x.id === id) : null;
+  const chosen = new Set(sit ? sitPetIds(sit) : pets.map(p => p.id));
+  const petChecks = pets.map(p => `
+    <label class="check-opt">
+      <input type="checkbox" class="sf-pet" value="${esc(p.id)}" ${chosen.has(p.id) ? "checked" : ""} />
+      ${esc(p.emoji)} ${esc(p.name)}
+    </label>`).join("") || `<div class="empty-sm">Add a pet first (⚙️).</div>`;
+
+  openModal(`
+    <h3 style="margin-bottom:16px">${sit ? "Edit sit" : "New sit"}</h3>
+    <div class="form-group">
+      <label for="sf-title">Title</label>
+      <input id="sf-title" type="text" maxlength="120" value="${esc(sit?.title ?? "")}" placeholder="Rex &amp; Mochi, Oct 3–10" data-autofocus />
+    </div>
+    <div class="form-group date-row">
+      <div><label for="sf-start">From</label><input id="sf-start" type="date" value="${esc(sit?.starts_on ?? "")}" /></div>
+      <div><label for="sf-end">Until</label><input id="sf-end" type="date" value="${esc(sit?.ends_on ?? "")}" /></div>
+    </div>
+    <div class="form-group">
+      <label for="sf-instructions">Instructions <span class="muted-label">(shown on the sitter’s page)</span></label>
+      <textarea id="sf-instructions" maxlength="4000" placeholder="Feeding amounts, the vet’s number, where the leash is…">${esc(sit?.instructions ?? "")}</textarea>
+    </div>
+    <div class="form-group">
+      <label>Pets</label>
+      <div class="check-list">${petChecks}</div>
+    </div>
+    <p class="hint">The sitter sees every care activity of the pets you pick, and when each was last done.</p>
+    <div id="sf-error" class="form-error" role="alert"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="openSitters()">Back</button>
+      <button class="btn btn-primary" data-sit-id="${esc(id ?? "")}" onclick="submitSit(this.dataset.sitId)">${sit ? "Save" : "Create sit"}</button>
+    </div>
+  `);
+}
+
+/** /api/db's batch ceiling. */
+const MAX_BATCH_STATEMENTS = 25;
+
+window.submitSit = async function(existingId) {
+  if (!isAdult(ME)) return;
+  const title        = document.getElementById("sf-title").value.trim();
+  const starts_on    = document.getElementById("sf-start").value;
+  const ends_on      = document.getElementById("sf-end").value;
+  const instructions = document.getElementById("sf-instructions").value.trim();
+  const petIds       = [...modalEl.querySelectorAll(".sf-pet:checked")].map(i => i.value);
+  const errEl        = document.getElementById("sf-error");
+  errEl.textContent = "";
+  if (!title) { document.getElementById("sf-title").focus(); return; }
+  if (!petIds.length) { errEl.textContent = "Pick at least one pet."; return; }
+  if (starts_on && ends_on && ends_on < starts_on) { errEl.textContent = "The sit can’t end before it starts."; return; }
+
+  const id = existingId || crypto.randomUUID();
+  const pet_ids = JSON.stringify(petIds);
+  const btn = modalEl?.querySelector(".modal-actions .btn-primary");
+  if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+  try {
+    const statements = existingId
+      ? [{ sql: "UPDATE app_pet_care__sits SET title = ?, instructions = ?, starts_on = ?, ends_on = ?, pet_ids = ? WHERE id = ?",
+           params: [title, instructions, starts_on, ends_on, pet_ids, id] }]
+      : [{ sql: "INSERT INTO app_pet_care__sits (id, title, instructions, starts_on, ends_on, pet_ids, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+           params: [id, title, instructions, starts_on, ends_on, pet_ids, ME.id, new Date().toISOString()] }];
+    // The sit and its checklist land together, so a link never shows a sit
+    // without its tasks. Built from a fresh read (see readCare).
+    const care = await readCare();
+    statements.push(...sitTaskStatements(id, sitTaskRows({ pet_ids }, care.pets, care.activities), () => crypto.randomUUID()));
+    if (statements.length > MAX_BATCH_STATEMENTS) throw new Error("That is too many tasks for one sit — pick fewer pets.");
+    await dbBatch(statements);
+    await loadSits();
+  } catch (e) {
+    errEl.textContent = e?.message || "Could not save the sit.";
+    if (btn) { btn.disabled = false; btn.textContent = existingId ? "Save" : "Create sit"; }
+    return;
+  }
+  renderSittersModal();
+};
+
+window.toggleSitArchived = async function(id) {
+  const sit = sits.find(x => x.id === id);
+  if (!sit || !isAdult(ME)) return;
+  const archived = Number(sit.archived) === 1 ? 0 : 1;
+  try {
+    await dbBatch([{ sql: "UPDATE app_pet_care__sits SET archived = ? WHERE id = ?", params: [archived, id] }]);
+    // A restored sit may have missed edits while it was archived.
+    if (archived) await loadSits();
+    else await syncSits();
+  } catch (e) {
+    hubAlert(e?.message || "Could not update the sit.");
+  }
+  renderSittersModal();
+};
+
+window.doDeleteSit = async function(id) {
+  if (!isAdult(ME)) return;
+  const ok = await hubConfirm({
+    message: "Delete this sit?",
+    description: "Its links stop working. The sitter’s ticks stay in your pets’ history.",
+    confirmLabel: "Delete sit",
+  });
+  if (!ok) return;
+  try {
+    // delete_cascades takes the sit's checklist; logs are care history and stay.
+    await dbBatch([{ sql: "DELETE FROM app_pet_care__sits WHERE id = ?", params: [id] }]);
+    await loadSits();
+  } catch (e) {
+    hubAlert(e?.message || "Could not delete the sit.");
+  }
+  renderSittersModal();
+};
+
+window.shareSit = async function(id) {
+  if (!isAdult(ME)) return;
+  // The link shows the checklist as stored, so bring it up to date first, and
+  // don't hand out a link to a checklist that could not be.
+  if (sitSyncBlocksShare(await syncSits(), id)) {
+    hubAlert("Couldn’t bring this sit’s tasks up to date, so a link could show old ones. Try again in a moment.");
+    return;
+  }
+  const sit = sits.find(x => x.id === id);
+  if (sit) shareUi.open({ id: sit.id, title: sit.title });
+};
+
+/** An archived sit's links are closed but still live: restoring the sit
+ *  reopens them, so they count toward the household's link limit. The share
+ *  panel would also offer to mint a link that could not open, so an archived
+ *  sit gets this instead. */
+window.revokeSitLinks = async function(id) {
+  if (!isAdult(ME)) return;
+  let links;
+  try {
+    const status = await share.listAll();
+    if (!status || status.limits === null) throw new Error("refused");
+    links = activeShareLinks(status.links, id);
+  } catch {
+    hubAlert("Couldn’t check this sit’s links. Try again in a moment.");
+    return;
+  }
+  if (!links.length) { hubAlert("This sit has no live links."); return; }
+  // Only a link's creator or an admin can revoke it: offer those, name the rest.
+  const { mine, holders } = planSitLinkRevoke(links, { meId: ME?.id, isAdmin: window.__IS_ADMIN === true, members });
+  const othersNote = holders.length
+    ? ` ${links.length - mine.length === 1 ? "One link was" : `${links.length - mine.length} links were`} made by ${holders.join(" and ")}; they or an admin can revoke ${links.length - mine.length === 1 ? "it" : "them"}.`
+    : "";
+  if (!mine.length) {
+    hubAlert(links.length === 1
+      ? `This sit’s link was made by ${holders[0]}. They or an admin can revoke it.`
+      : `This sit’s links were made by ${holders.join(" and ")}. They or an admin can revoke them.`);
+    return;
+  }
+  const ok = await hubConfirm({
+    message: `Revoke ${mine.length === 1 ? "this sit’s link" : `${mine.length} of this sit’s links`}?`,
+    description: `Restoring the sit will no longer reopen ${mine.length === 1 ? "it" : "them"}. You can make a new link after restoring it.${othersNote}`,
+    confirmLabel: "Revoke",
+    destructive: true,
+  });
+  if (!ok) return;
+  let failedCount = 0;
+  for (const link of mine) {
+    try { await share.revoke(link.id); } catch { failedCount++; }
+  }
+  if (failedCount) hubAlert(`Couldn’t revoke ${failedCount} of ${mine.length}. Try again.`);
+};
+
+window.openSitters = async function() {
+  renderSittersModal();
+  await syncSits();
+  // Repaint only if the list is still what is on screen.
+  if (modalEl?.querySelector("[data-testid='new-sit']")) renderSittersModal();
+};
+window.openSitForm = openSitForm;
 
 // ─── Deep link ────────────────────────────────────────────────────────────
 function handleDeepLink() {
@@ -858,6 +1194,9 @@ function handleDeepLink() {
   }
   renderMain();
   handleDeepLink();
+  // Keep open sits' checklists current with the pets' activities. Off the
+  // first paint: nothing on the main view depends on it.
+  syncSits();
   // Refresh status colors every minute without a full DB reload
   refreshTimer = setInterval(() => { if (!modalEl) renderMain(); }, 60_000);
 })();

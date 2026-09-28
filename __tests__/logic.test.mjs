@@ -1,5 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { formatDuration, statusColor, activityStatusInterval, activityStatusTimes, localDateToISO, isoToLocalDateInput } from "../src/logic.js";
+import { describe, it, expect, vi } from "vitest";
+import {
+  formatDuration, statusColor, activityStatusInterval, activityStatusTimes, localDateToISO, isoToLocalDateInput,
+  logAuthor, schedLabel, sitPetIds, sitIsOpen, sitTaskRows, sitTasksDrifted, sitTaskStatements, formatDay, sitDates,
+  sitExpiryChoice, CARE_SNAPSHOT_STATEMENTS, parseCareSnapshot, refreshSitChecklists,
+  lastDoneToSave, sitSyncBlocksShare, planSitLinkRevoke,
+} from "../src/logic.js";
 
 // ── formatDuration ────────────────────────────────────────────────────────────
 
@@ -143,5 +148,324 @@ describe("localDateToISO / isoToLocalDateInput", () => {
     expect(isoToLocalDateInput("")).toBe("");
     expect(isoToLocalDateInput(null)).toBe("");
     expect(isoToLocalDateInput("not-a-date")).toBe("");
+  });
+});
+
+// ── Sitter ticks ──────────────────────────────────────────────────────────────
+
+describe("logAuthor", () => {
+  const members = [{ id: "u1", name: "Alex" }];
+
+  it("names a member by their id", () => {
+    expect(logAuthor({ done_by: "u1" }, members)).toMatchObject({ member: members[0], name: "Alex", sitter: false });
+  });
+
+  it("names a sitter's tick by the name they typed, not as a member", () => {
+    expect(logAuthor({ done_by: "sitter", sitter_name: "Sam" }, members)).toEqual({ member: null, name: "Sam", sitter: true });
+  });
+
+  it("falls back to 'Sitter' for a sitter with no name, and 'Someone' for an unknown member", () => {
+    expect(logAuthor({ done_by: "sitter", sitter_name: "" }, members).name).toBe("Sitter");
+    expect(logAuthor({ done_by: "gone" }, members).name).toBe("Someone");
+  });
+
+  it("reaches activityStatusInterval's lastBy", () => {
+    const log = { done_by: "sitter", sitter_name: "Sam", done_at: new Date(Date.now() - 3600000).toISOString() };
+    const s = activityStatusInterval({ interval_hours: 24 }, log, members);
+    expect(s.lastBy.name).toBe("Sam");
+    expect(s.lastBy.member).toBeNull();
+  });
+});
+
+describe("schedLabel", () => {
+  it("says the interval or the times", () => {
+    expect(schedLabel({ schedule_type: "interval", interval_hours: 12 })).toBe("Every 12h");
+    expect(schedLabel({ schedule_type: "interval", interval_hours: null })).toBe("Every 24h");
+    expect(schedLabel({ schedule_type: "times", times: ["08:00", "18:00"] })).toBe("08:00, 18:00");
+  });
+});
+
+// ── Sits ──────────────────────────────────────────────────────────────────────
+
+describe("sitPetIds", () => {
+  it("reads the stored array and tolerates junk", () => {
+    expect(sitPetIds({ pet_ids: '["p1","p2"]' })).toEqual(["p1", "p2"]);
+    expect(sitPetIds({ pet_ids: "not json" })).toEqual([]);
+    expect(sitPetIds({ pet_ids: '{"a":1}' })).toEqual([]);
+    expect(sitPetIds({ pet_ids: '["p1",2]' })).toEqual(["p1"]);
+    expect(sitPetIds({})).toEqual([]);
+  });
+});
+
+describe("sitIsOpen", () => {
+  it("is open until the end date passes, and never when archived", () => {
+    expect(sitIsOpen({ archived: 0, ends_on: "2026-10-10" }, "2026-10-10")).toBe(true);
+    expect(sitIsOpen({ archived: 0, ends_on: "2026-10-10" }, "2026-10-11")).toBe(false);
+    expect(sitIsOpen({ archived: 0, ends_on: "" }, "2026-10-11")).toBe(true);
+    expect(sitIsOpen({ archived: 1, ends_on: "" }, "2026-10-11")).toBe(false);
+  });
+});
+
+describe("sitTaskRows", () => {
+  const pets = [{ id: "p1", name: "Rex" }, { id: "p2", name: "Mochi" }, { id: "p3", name: "Kiwi" }];
+  const activities = [
+    { id: "a3", pet_id: "p2", name: "Feed", schedule_type: "interval", interval_hours: 24, sort_order: 0, created_at: "1" },
+    { id: "a2", pet_id: "p1", name: "Walk", schedule_type: "interval", interval_hours: 12, sort_order: 1, created_at: "1" },
+    { id: "a1", pet_id: "p1", name: "Breakfast", schedule_type: "times", times: ["08:00"], sort_order: 0, created_at: "1" },
+    { id: "a4", pet_id: "p3", name: "Water", schedule_type: "interval", interval_hours: 24, sort_order: 0, created_at: "1" },
+  ];
+
+  it("lists the chosen pets' activities, pets in order, each pet's in its own order", () => {
+    const rows = sitTaskRows({ pet_ids: '["p2","p1"]' }, pets, activities);
+    expect(rows).toEqual([
+      { activity_id: "a1", pet_id: "p1", label: "Rex · Breakfast", detail: "08:00", sort_order: 0 },
+      { activity_id: "a2", pet_id: "p1", label: "Rex · Walk", detail: "Every 12h", sort_order: 1 },
+      { activity_id: "a3", pet_id: "p2", label: "Mochi · Feed", detail: "Every 24h", sort_order: 2 },
+    ]);
+  });
+
+  it("skips a chosen pet that no longer exists", () => {
+    expect(sitTaskRows({ pet_ids: '["gone"]' }, pets, activities)).toEqual([]);
+  });
+});
+
+describe("sitTasksDrifted", () => {
+  const want = [
+    { activity_id: "a1", pet_id: "p1", label: "Rex · Breakfast", detail: "08:00" },
+    { activity_id: "a2", pet_id: "p1", label: "Rex · Walk", detail: "Every 12h" },
+  ];
+  const stored = want.map((r, i) => ({ ...r, id: `t${i}`, sit_id: "s1", sort_order: i }));
+
+  it("is quiet when the stored checklist matches, whatever its row ids", () => {
+    expect(sitTasksDrifted(stored, want)).toBe(false);
+  });
+
+  it("notices a rename, a schedule change, a reorder, an addition and a removal", () => {
+    expect(sitTasksDrifted(stored, [{ ...want[0], label: "Rex · Brunch" }, want[1]])).toBe(true);
+    expect(sitTasksDrifted(stored, [want[0], { ...want[1], detail: "Every 8h" }])).toBe(true);
+    expect(sitTasksDrifted(stored, [want[1], want[0]])).toBe(true);
+    expect(sitTasksDrifted(stored, [...want, { activity_id: "a3", pet_id: "p2", label: "x", detail: "" }])).toBe(true);
+    expect(sitTasksDrifted(stored, [want[0]])).toBe(true);
+  });
+});
+
+describe("sitTaskStatements", () => {
+  const row = (i) => ({ activity_id: `a${i}`, pet_id: "p1", label: `T${i}`, detail: "", sort_order: i });
+  let n = 0;
+  const newId = () => `id-${n++}`;
+
+  it("deletes the sit's rows, then inserts the new ones in order", () => {
+    const [del, ins] = sitTaskStatements("s1", [row(0), row(1)], newId);
+    expect(del).toEqual({ sql: "DELETE FROM app_pet_care__sit_tasks WHERE sit_id = ?", params: ["s1"] });
+    expect(ins.params.filter((_, i) => i % 7 === 2)).toEqual(["a0", "a1"]);
+    expect(ins.params.filter((_, i) => i % 7 === 1)).toEqual(["s1", "s1"]);
+  });
+
+  it("keeps every INSERT under D1's 100 bound parameters", () => {
+    const statements = sitTaskStatements("s1", Array.from({ length: 30 }, (_, i) => row(i)), newId);
+    expect(statements).toHaveLength(4); // delete + 14 + 14 + 2
+    for (const st of statements.slice(1)) {
+      expect(st.params.length).toBeLessThanOrEqual(100);
+      expect((st.sql.match(/\?/g) ?? []).length).toBe(st.params.length);
+    }
+    const order = statements.slice(1).flatMap((st) => st.params.filter((_, i) => i % 7 === 2));
+    expect(order).toEqual(Array.from({ length: 30 }, (_, i) => `a${i}`));
+  });
+
+  it("with no tasks, only clears the checklist", () => {
+    expect(sitTaskStatements("s1", [], newId)).toHaveLength(1);
+  });
+});
+
+describe("sit dates", () => {
+  it("formats a range, either end alone, or nothing", () => {
+    expect(sitDates({ starts_on: "2026-10-03", ends_on: "2026-10-10" })).toBe(`${formatDay("2026-10-03")} – ${formatDay("2026-10-10")}`);
+    expect(sitDates({ starts_on: "2026-10-03", ends_on: "" })).toBe(`From ${formatDay("2026-10-03")}`);
+    expect(sitDates({ starts_on: "", ends_on: "2026-10-10" })).toBe(`Until ${formatDay("2026-10-10")}`);
+    expect(sitDates({ starts_on: "", ends_on: "" })).toBe("");
+    expect(formatDay("junk")).toBe("");
+  });
+});
+
+describe("sitExpiryChoice", () => {
+  it("lasts through the day after the sit ends, counted from now", () => {
+    const now = new Date(2026, 9, 10, 12, 0); // noon on the last day, local
+    const choice = sitExpiryChoice({ ends_on: "2026-10-10" }, now);
+    // To local midnight at the end of Oct 11: 12h + 24h.
+    expect(choice.hours).toBe(36);
+    expect(choice.label).toMatch(/^Until the day after the sit \(/);
+  });
+
+  it("rounds a part hour up rather than cutting the handover day short", () => {
+    const now = new Date(2026, 9, 11, 22, 30);
+    expect(sitExpiryChoice({ ends_on: "2026-10-10" }, now).hours).toBe(2);
+  });
+
+  it("is null with no end date, or once that moment has passed", () => {
+    expect(sitExpiryChoice({ ends_on: "" }, new Date(2026, 9, 1))).toBeNull();
+    expect(sitExpiryChoice({ ends_on: "2026-10-10" }, new Date(2026, 9, 12, 0, 0))).toBeNull();
+    expect(sitExpiryChoice(undefined)).toBeNull();
+  });
+});
+
+// ── Keeping a sit's checklist current ─────────────────────────────────────────
+
+describe("parseCareSnapshot", () => {
+  const ok = [{ rows: [{ id: "p1" }] }, { rows: [{ id: "a1", times: '["08:00"]' }] }, { rows: [] }, { rows: [] }];
+
+  it("names the four reads and parses activity times", () => {
+    const snap = parseCareSnapshot(ok);
+    expect(snap.pets).toEqual([{ id: "p1" }]);
+    expect(snap.activities[0].times).toEqual(["08:00"]);
+    expect(snap.sits).toEqual([]);
+    expect(snap.tasks).toEqual([]);
+  });
+
+  it("throws on any missing read rather than calling it an empty table", () => {
+    expect(() => parseCareSnapshot([])).toThrow();
+    expect(() => parseCareSnapshot(undefined)).toThrow();
+    expect(() => parseCareSnapshot(ok.slice(0, 3))).toThrow();
+    expect(() => parseCareSnapshot([{ error: "boom" }, ...ok.slice(1)])).toThrow();
+    expect(() => parseCareSnapshot([ok[0], { rows: null }, ok[2], ok[3]])).toThrow();
+  });
+
+  it("reads every table a checklist is built from, in one batch", () => {
+    expect(CARE_SNAPSHOT_STATEMENTS.map(st => st.sql.match(/FROM (\w+)/)[1])).toEqual([
+      "app_pet_care__pets", "app_pet_care__activities", "app_pet_care__sits", "app_pet_care__sit_tasks",
+    ]);
+  });
+});
+
+describe("refreshSitChecklists", () => {
+  const TODAY = "2026-10-05";
+  const pets = [{ id: "p1", name: "Rex" }];
+  const feed = { id: "a1", pet_id: "p1", name: "Feed", schedule_type: "interval", interval_hours: 12, sort_order: 0, created_at: "1" };
+  const meds = { id: "a2", pet_id: "p1", name: "Meds", schedule_type: "interval", interval_hours: 24, sort_order: 1, created_at: "1" };
+  const sit = { id: "s1", pet_ids: '["p1"]', archived: 0, ends_on: "2026-10-10" };
+  const stored = (acts) => sitTaskRows(sit, pets, acts).map((r, i) => ({ ...r, id: `t${i}`, sit_id: "s1" }));
+  let n = 0;
+  const newId = () => `n${n++}`;
+
+  it("never writes when the read fails", async () => {
+    const write = vi.fn();
+    await expect(refreshSitChecklists({
+      read: async () => { throw new Error("offline"); }, write, today: TODAY, newId,
+    })).rejects.toThrow("offline");
+    expect(write).not.toHaveBeenCalled();
+  });
+
+  it("builds from what it read, not what the caller had: another adult's new activity is added", async () => {
+    const write = vi.fn(async () => {});
+    const { changed } = await refreshSitChecklists({
+      read: async () => ({ pets, activities: [feed, meds], sits: [sit], tasks: stored([feed]) }),
+      write, today: TODAY, newId,
+    });
+    expect(changed).toBe(true);
+    const [statements] = write.mock.calls[0];
+    expect(statements[1].params.filter((_, i) => i % 7 === 2)).toEqual(["a1", "a2"]);
+  });
+
+  it("leaves a checklist that matches alone, and skips archived and ended sits", async () => {
+    const write = vi.fn(async () => {});
+    const { changed } = await refreshSitChecklists({
+      read: async () => ({
+        pets, activities: [feed, meds],
+        sits: [sit, { ...sit, id: "s2", archived: 1 }, { ...sit, id: "s3", ends_on: "2026-10-01" }],
+        tasks: stored([feed, meds]),
+      }),
+      write, today: TODAY, newId,
+    });
+    expect(changed).toBe(false);
+    expect(write).not.toHaveBeenCalled();
+  });
+
+  it("a refused write skips that sit only, and the sits after it still refresh", async () => {
+    const write = vi.fn(async (statements) => {
+      if (statements[0].params[0] === "s1") throw new Error("too many statements");
+    });
+    const { changed, failed } = await refreshSitChecklists({
+      read: async () => ({ pets, activities: [feed, meds], sits: [sit, { ...sit, id: "s2" }], tasks: stored([feed]) }),
+      write, today: TODAY, newId,
+    });
+    expect(failed).toEqual(["s1"]);
+    expect(changed).toBe(true);
+    expect(write.mock.calls.map(([st]) => st[0].params[0])).toEqual(["s1", "s2"]);
+  });
+});
+
+describe("lastDoneToSave", () => {
+  it("leaves the logs alone when the prefilled date is saved unchanged", () => {
+    // A rename would otherwise move the newest log to local midnight.
+    expect(lastDoneToSave("2026-10-04", "2026-10-04")).toBeNull();
+  });
+
+  it("saves a changed date as local midnight", () => {
+    expect(lastDoneToSave("2026-10-02", "2026-10-04")).toBe(localDateToISO("2026-10-02"));
+  });
+
+  it("saves a date set on a form that had none", () => {
+    expect(lastDoneToSave("2026-10-02", "")).toBe(localDateToISO("2026-10-02"));
+    expect(lastDoneToSave("2026-10-02", undefined)).toBe(localDateToISO("2026-10-02"));
+  });
+
+  it("treats a cleared field as leave alone", () => {
+    expect(lastDoneToSave("", "2026-10-04")).toBeNull();
+    expect(lastDoneToSave("", undefined)).toBeNull();
+  });
+});
+
+describe("sitSyncBlocksShare", () => {
+  it("allows sharing after a clean sync", () => {
+    expect(sitSyncBlocksShare({ ok: true, failed: [] }, "s1")).toBe(false);
+  });
+
+  it("blocks when the read failed, for every sit", () => {
+    expect(sitSyncBlocksShare({ ok: false, failed: [] }, "s1")).toBe(true);
+  });
+
+  it("blocks only the sit whose rewrite was refused", () => {
+    const result = { ok: true, failed: ["s2"] };
+    expect(sitSyncBlocksShare(result, "s2")).toBe(true);
+    expect(sitSyncBlocksShare(result, "s1")).toBe(false);
+  });
+
+  it("blocks on a missing result rather than guessing", () => {
+    expect(sitSyncBlocksShare(undefined, "s1")).toBe(true);
+  });
+});
+
+describe("planSitLinkRevoke", () => {
+  const members = [{ id: "m-me", name: "Ada" }, { id: "m-sam", name: "Sam" }];
+  const links = [
+    { id: "l1", createdBy: "m-me" },
+    { id: "l2", createdBy: "m-sam" },
+    { id: "l3", createdBy: "m-sam" },
+    { id: "l4", createdBy: "m-gone" },
+  ];
+
+  it("offers a member only their own links, naming each other holder once", () => {
+    const plan = planSitLinkRevoke(links, { meId: "m-me", isAdmin: false, members });
+    expect(plan.mine.map(l => l.id)).toEqual(["l1"]);
+    expect(plan.others.map(l => l.id)).toEqual(["l2", "l3", "l4"]);
+    // A creator no longer on the roster is "another adult", not an id.
+    expect(plan.holders).toEqual(["Sam", "another adult"]);
+  });
+
+  it("offers an admin every link", () => {
+    const plan = planSitLinkRevoke(links, { meId: "m-me", isAdmin: true, members });
+    expect(plan.mine.map(l => l.id)).toEqual(["l1", "l2", "l3", "l4"]);
+    expect(plan.others).toEqual([]);
+    expect(plan.holders).toEqual([]);
+  });
+
+  it("offers nothing when every link is someone else's", () => {
+    const plan = planSitLinkRevoke(links.slice(1, 3), { meId: "m-me", isAdmin: false, members });
+    expect(plan.mine).toEqual([]);
+    expect(plan.holders).toEqual(["Sam"]);
+  });
+
+  it("never matches a link to a member with no id", () => {
+    const plan = planSitLinkRevoke([{ id: "l9", createdBy: undefined }], { meId: undefined, isAdmin: false, members });
+    expect(plan.mine).toEqual([]);
   });
 });

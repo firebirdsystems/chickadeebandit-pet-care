@@ -11,6 +11,7 @@ Track pet care activities — feeding, medication, potty breaks, walks, and anyt
 - One-tap logging with optional notes
 - Full care history per pet and activity
 - Supports multiple pets
+- Sitter links: a checklist page a pet-sitter can tick off without an account
 
 ## Install
 

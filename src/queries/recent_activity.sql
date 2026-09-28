@@ -2,6 +2,7 @@ SELECT
   l.id,
   l.done_at,
   l.done_by,
+  l.sitter_name,
   a.name  AS activity_name,
   a.icon  AS activity_icon,
   p.name  AS pet_name,
