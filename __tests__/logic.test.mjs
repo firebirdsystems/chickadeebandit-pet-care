@@ -4,6 +4,7 @@ import {
   logAuthor, schedLabel, sitPetIds, sitIsOpen, sitTaskRows, sitTasksDrifted, sitTaskStatements, formatDay, sitDates,
   sitExpiryChoice, CARE_SNAPSHOT_STATEMENTS, parseCareSnapshot, refreshSitChecklists,
   lastDoneToSave, sitSyncBlocksShare, planSitLinkRevoke,
+  SIT_MAX_TASKS,
 } from "../src/logic.js";
 
 // ── formatDuration ────────────────────────────────────────────────────────────
@@ -469,3 +470,55 @@ describe("planSitLinkRevoke", () => {
     expect(plan.mine).toEqual([]);
   });
 });
+
+describe("the sitter page's task limit", () => {
+  const TODAY = "2026-10-05";
+  const parents = [{ id: "p1", name: "One", location: "" }];
+  const acts = (n) => Array.from({ length: n }, (_, i) => ({ id: `a${i}`, pet_id: "p1", name: `T${i}`, schedule_type: "interval", interval_hours: 24, sort_order: i, created_at: "1" }));
+  const sit = (id) => ({ id, pet_ids: '["p1"]', archived: 0, ends_on: "" });
+  let n = 0;
+  const newId = () => `n${n++}`;
+
+  it("matches the hub's cap on a sitter page's options", () => {
+    // MAX_SHAREABLE_SELECT_OPTIONS in hub-contract; the hub's share-pet-care
+    // exercise test pins the two together.
+    expect(SIT_MAX_TASKS).toBe(100);
+  });
+
+  it("writes a checklist of exactly the limit", async () => {
+    const write = vi.fn(async () => {});
+    const { changed, failed, tooMany } = await refreshSitChecklists({
+      read: async () => ({ pets: parents, activities: acts(SIT_MAX_TASKS), sits: [sit("s1")], tasks: [] }),
+      write, today: TODAY, newId,
+    });
+    expect(changed).toBe(true);
+    expect(failed).toEqual([]);
+    expect(tooMany).toEqual({});
+    const written = write.mock.calls[0][0].slice(1).flatMap(st => st.params.filter((_, i) => i % 7 === 2));
+    expect(written).toHaveLength(SIT_MAX_TASKS);
+  });
+
+  it("leaves a sit past the limit on its last checklist, and names it, while other sits refresh", async () => {
+    const write = vi.fn(async () => {});
+    const stored = [{ id: "t0", sit_id: "s-big", activity_id: "a0", pet_id: "p1", label: "old", detail: "", sort_order: 0 }];
+    const { changed, failed, tooMany } = await refreshSitChecklists({
+      read: async () => ({
+        pets: [...parents, { id: "p2", name: "Two", location: "" }],
+        activities: [...acts(SIT_MAX_TASKS + 1), { ...acts(1)[0], id: "b0", pet_id: "p2" }],
+        sits: [sit("s-big"), { id: "s-small", pet_ids: '["p2"]', archived: 0, ends_on: "" }],
+        tasks: stored,
+      }),
+      write, today: TODAY, newId,
+    });
+    expect(tooMany).toEqual({ "s-big": SIT_MAX_TASKS + 1 });
+    expect(failed).toEqual(["s-big"]);
+    // Nothing is written for the big sit (its stored checklist stays); the small one refreshes.
+    expect(write.mock.calls.map(([st]) => st[0].params[0])).toEqual(["s-small"]);
+    expect(changed).toBe(true);
+  });
+
+  it("a sit past the limit blocks sharing", () => {
+    expect(sitSyncBlocksShare({ ok: true, failed: ["s-big"], tooMany: { "s-big": 101 } }, "s-big")).toBe(true);
+  });
+});
+

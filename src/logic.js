@@ -127,6 +127,11 @@ export function schedLabel(activity) {
 }
 
 // ─── Sits ────────────────────────────────────────────────────────────────────
+// The sit helpers below (and the Sit links section) have a twin in
+// plant-care/src/logic.js. They differ on purpose only in the ids (pet_id),
+// the schedule label (hours or times), and plant-care's room-by-room order.
+// A fix to the shared behaviour (checklist refresh, drift, statements, expiry,
+// the share gate, the revoke plan) belongs in both apps, with its test.
 
 /** The pets a sit covers (its stored JSON array), or [] when unreadable. */
 export function sitPetIds(sit) {
@@ -178,6 +183,13 @@ export function sitTasksDrifted(current, desired) {
       || row.label !== want.label || row.detail !== want.detail;
   });
 }
+
+/** The most tasks a sit may have: the hub offers a sitter's page at most this
+ *  many options and accepts a tick only on one of them
+ *  (MAX_SHAREABLE_SELECT_OPTIONS in hub-contract), so a longer checklist
+ *  would hide its tail from the sitter. Checked when a sit is saved and
+ *  whenever its checklist is refreshed. */
+export const SIT_MAX_TASKS = 100;
 
 /** Rows per INSERT: 7 binds each, under D1's 100 bound parameters. */
 const SIT_TASK_ROWS_PER_INSERT = 14;
@@ -265,16 +277,25 @@ export function parseCareSnapshot(results) {
 /** Rewrite each open sit's checklist that drifted from its pets' activities.
  *  `read` returns a care snapshot (and throws when it can't); nothing is
  *  written from anything else. `write` applies one sit's statements
- *  atomically. A refused write (one sit grown past the batch ceiling, say)
- *  skips that sit only, so it cannot stall every sit after it. Returns the
- *  snapshot read, whether anything was written, and the sits that failed. */
+ *  atomically. A refused write skips that sit only, so it cannot stall every
+ *  sit after it. A sit whose checklist would pass SIT_MAX_TASKS is not
+ *  rewritten at all: its link keeps the last checklist that fit, rather than
+ *  one the sitter's page would cut short. Returns the snapshot read, whether
+ *  anything was written, the sits that failed (too many tasks included), and
+ *  `tooMany`: sit id → the task count it would have. */
 export async function refreshSitChecklists({ read, write, today, newId }) {
   const snap = await read();
   let changed = false;
   const failed = [];
+  const tooMany = {};
   for (const sit of snap.sits) {
     if (!sitIsOpen(sit, today)) continue;
     const desired = sitTaskRows(sit, snap.pets, snap.activities);
+    if (desired.length > SIT_MAX_TASKS) {
+      tooMany[sit.id] = desired.length;
+      failed.push(sit.id);
+      continue;
+    }
     const current = snap.tasks.filter(t => t.sit_id === sit.id);
     if (!sitTasksDrifted(current, desired)) continue;
     try {
@@ -284,7 +305,7 @@ export async function refreshSitChecklists({ read, write, today, newId }) {
       failed.push(sit.id);
     }
   }
-  return { snap, changed, failed };
+  return { snap, changed, failed, tooMany };
 }
 
 // ─── Sit links ───────────────────────────────────────────────────────────────

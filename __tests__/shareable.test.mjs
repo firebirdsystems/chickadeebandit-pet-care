@@ -73,6 +73,16 @@ describe("shareable.sit", () => {
     expect(schema).toMatch(/ON app_pet_care__logs\s*\(activity_id/);
   });
 
+  // `_on` is not a plaintext suffix (the codec's are _id/_at/_date/_by/_time),
+  // so the sit's dates must be declared, like medication-tracker's: a date is
+  // not confidential, and an encrypted one can never be sorted or compared in
+  // SQL. The title and instructions (a door code) stay encrypted.
+  it("stores the sit's dates in plaintext and its words encrypted", () => {
+    expect(manifest.db_plaintext_columns).toEqual(expect.arrayContaining(["starts_on", "ends_on", "archived"]));
+    expect(manifest.db_plaintext_columns).not.toContain("title");
+    expect(manifest.db_plaintext_columns).not.toContain("instructions");
+  });
+
   it("keeps sits and their tasks adult-only to write", () => {
     expect(manifest.row_policies.sits).toEqual({ kind: "adult_writable" });
     expect(manifest.row_policies.sit_tasks).toEqual({ kind: "adult_writable" });
@@ -112,13 +122,14 @@ function handler(name) {
 describe("sit links in the app", () => {
   it("refuses to share a sit whose checklist could not be refreshed", () => {
     const body = handler("shareSit");
-    const gate = body.indexOf("sitSyncBlocksShare(await syncSits(), id)");
+    expect(body).toMatch(/const result = await syncSits\(\);/);
+    const gate = body.indexOf("sitSyncBlocksShare(result, id)");
     expect(gate).toBeGreaterThan(-1);
     expect(gate).toBeLessThan(body.indexOf("shareUi.open("));
   });
 
   it("the sync never rejects, so the gate always gets a result", () => {
-    expect(page).toMatch(/sitSync\.then\(refreshOpenSits\)\.catch\(\(\) => \(\{ ok: false, failed: \[\] \}\)\)/);
+    expect(page).toMatch(/sitSync\.then\(refreshOpenSits\)\.catch\(\(\) => \(\{ ok: false, failed: \[\], tooMany: \{\} \}\)\)/);
   });
 
   it("an archived sit offers Revoke links, never the share panel", () => {
@@ -135,3 +146,38 @@ describe("sit links in the app", () => {
     expect(body).toMatch(/status\.limits === null/);
   });
 });
+
+describe("page safety", () => {
+  it("a refused log write takes the optimistic tick back off", () => {
+    expect(page).toMatch(/const res = await db\(`INSERT INTO app_pet_care__logs[^\n]*\n[^\n]*\n\s*if \(res\?\.error\) throw new Error\(res\.error\);/);
+  });
+
+  it("escapes a stored emoji or icon wherever it is rendered", () => {
+    expect(page).not.toMatch(/\$\{p\.emoji\} \$\{esc\(p\.name\)\}/);
+    expect(page).not.toMatch(/value="\$\{sel\}"/);
+  });
+});
+
+describe("the sitter page's task limit in the page", () => {
+  it("refuses to save a sit past SIT_MAX_TASKS, before writing anything", () => {
+    const body = handler("submitSit");
+    const check = body.indexOf("if (rows.length > SIT_MAX_TASKS)");
+    expect(check).toBeGreaterThan(-1);
+    expect(check).toBeLessThan(body.indexOf("await dbBatch(statements)"));
+    expect(page).not.toMatch(/MAX_BATCH_STATEMENTS/);
+  });
+
+  it("says why Share is refused for a sit past the limit, before the generic gate", () => {
+    const body = handler("shareSit");
+    const tooMany = body.indexOf("if (result.tooMany?.[id])");
+    expect(tooMany).toBeGreaterThan(-1);
+    expect(tooMany).toBeLessThan(body.indexOf("sitSyncBlocksShare(result, id)"));
+    expect(body.indexOf("sitSyncBlocksShare(result, id)")).toBeLessThan(body.indexOf("shareUi.open("));
+  });
+
+  it("warns on the sit's row, from the last refresh", () => {
+    expect(page).toMatch(/sitTooMany = tooMany;/);
+    expect(page).toMatch(/sitTooMany\[sit\.id\] \? `<span class="form-error" data-testid="sit-too-many">/);
+  });
+});
+

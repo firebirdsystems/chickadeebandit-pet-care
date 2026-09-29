@@ -1,0 +1,446 @@
+{
+  "scenarios": [
+    {
+      "name": "an adult makes a sit through the form, and its checklist holds only the chosen pets' activities",
+      "members": {
+        "owner": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p-rex', ?, ?, '🐶', '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Rex",
+            "dog"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p-mochi', ?, ?, '🐱', '2026-09-01T10:00:00.000Z')",
+          "params": [
+            "Mochi",
+            "cat"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-walk', 'p-rex', ?, '🦮', ?, 12, ?, 0, '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Walk",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-feed', 'p-rex', ?, '🍽️', ?, 24, ?, 1, '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Breakfast",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-mfeed', 'p-mochi', ?, '🍽️', ?, 24, ?, 0, '2026-09-01T10:00:00.000Z')",
+          "params": [
+            "Feed",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "owner"
+        },
+        {
+          "action": "expectVisible",
+          "as": "owner",
+          "selector": "[data-testid=\"open-sitters\"]"
+        },
+        {
+          "action": "click",
+          "as": "owner",
+          "selector": "[data-testid=\"open-sitters\"]"
+        },
+        {
+          "action": "waitFor",
+          "as": "owner",
+          "selector": "[data-testid=\"sitters-modal\"]"
+        },
+        {
+          "action": "click",
+          "as": "owner",
+          "selector": "[data-testid=\"new-sit\"]"
+        },
+        {
+          "action": "waitFor",
+          "as": "owner",
+          "selector": "[data-testid=\"sit-form-modal\"]"
+        },
+        {
+          "action": "fill",
+          "as": "owner",
+          "selector": "[data-testid=\"field-sit-title\"]",
+          "value": "Weekend away"
+        },
+        {
+          "action": "click",
+          "as": "owner",
+          "selector": "[data-testid=\"sit-pet\"][data-pet-id=\"p-mochi\"]"
+        },
+        {
+          "action": "click",
+          "as": "owner",
+          "selector": "[data-testid=\"save-sit\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "owner",
+          "selector": "[data-testid=\"sitters-modal\"] [data-testid=\"sit-row\"]",
+          "text": "2 tasks"
+        },
+        {
+          "action": "reload",
+          "as": "owner"
+        },
+        {
+          "action": "expectVisible",
+          "as": "owner",
+          "selector": "[data-testid=\"open-sitters\"]"
+        },
+        {
+          "action": "click",
+          "as": "owner",
+          "selector": "[data-testid=\"open-sitters\"]"
+        },
+        {
+          "action": "waitFor",
+          "as": "owner",
+          "selector": "[data-testid=\"sitters-modal\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "owner",
+          "selector": "[data-testid=\"sit-row\"]",
+          "text": "Weekend away"
+        },
+        {
+          "action": "expectText",
+          "as": "owner",
+          "selector": "[data-testid=\"sit-row\"]",
+          "text": "2 tasks"
+        },
+        {
+          "action": "expectNoText",
+          "as": "owner",
+          "selector": "[data-testid=\"sit-row\"]",
+          "text": "Mochi"
+        }
+      ]
+    },
+    {
+      "name": "a sitter's tick shows the name they typed, for a child too; only an adult gets the Sitter button",
+      "members": {
+        "kid": "child",
+        "grown": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p-rex', ?, ?, '🐶', '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Rex",
+            "dog"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p-mochi', ?, ?, '🐱', '2026-09-01T10:00:00.000Z')",
+          "params": [
+            "Mochi",
+            "cat"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-walk', 'p-rex', ?, '🦮', ?, 12, ?, 0, '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Walk",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-feed', 'p-rex', ?, '🍽️', ?, 24, ?, 1, '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Breakfast",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-mfeed', 'p-mochi', ?, '🍽️', ?, 24, ?, 0, '2026-09-01T10:00:00.000Z')",
+          "params": [
+            "Feed",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES ('l-sam', 'a-walk', 'p-rex', 'sitter', strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-2 hours'), 's-x', 'Sam Sitter', 'Rex · Walk')"
+        },
+        {
+          "action": "open",
+          "as": "kid"
+        },
+        {
+          "action": "expectText",
+          "as": "kid",
+          "selector": "[data-testid=\"activity-card\"][data-activity-id=\"a-walk\"] [data-testid=\"card-last-by\"]",
+          "text": "Sam Sitter"
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"open-sitters\"]",
+          "count": 0
+        },
+        {
+          "action": "open",
+          "as": "grown"
+        },
+        {
+          "action": "expectText",
+          "as": "grown",
+          "selector": "[data-testid=\"activity-card\"][data-activity-id=\"a-walk\"] [data-testid=\"card-last-by\"]",
+          "text": "Sam Sitter"
+        },
+        {
+          "action": "expectVisible",
+          "as": "grown",
+          "selector": "[data-testid=\"open-sitters\"]"
+        }
+      ]
+    },
+    {
+      "name": "an archived sit offers Revoke links and never Share; an open sit offers Share",
+      "members": {
+        "grown": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p-rex', ?, ?, '🐶', '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Rex",
+            "dog"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p-mochi', ?, ?, '🐱', '2026-09-01T10:00:00.000Z')",
+          "params": [
+            "Mochi",
+            "cat"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-walk', 'p-rex', ?, '🦮', ?, 12, ?, 0, '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Walk",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-feed', 'p-rex', ?, '🍽️', ?, 24, ?, 1, '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Breakfast",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-mfeed', 'p-mochi', ?, '🍽️', ?, 24, ?, 0, '2026-09-01T10:00:00.000Z')",
+          "params": [
+            "Feed",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__sits (id, title, pet_ids, archived, created_by, created_at) VALUES ('s-open', ?, ?, 0, ?, '2026-09-02T09:00:00.000Z')",
+          "params": [
+            "Open sit",
+            "[\"p-rex\"]",
+            "{{grown}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__sits (id, title, pet_ids, archived, created_by, created_at) VALUES ('s-arch', ?, ?, 1, ?, '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Old sit",
+            "[\"p-rex\"]",
+            "{{grown}}"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "grown"
+        },
+        {
+          "action": "expectVisible",
+          "as": "grown",
+          "selector": "[data-testid=\"open-sitters\"]"
+        },
+        {
+          "action": "click",
+          "as": "grown",
+          "selector": "[data-testid=\"open-sitters\"]"
+        },
+        {
+          "action": "waitFor",
+          "as": "grown",
+          "selector": "[data-testid=\"sitters-modal\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "grown",
+          "selector": "[data-testid=\"sit-row\"][data-sit-id=\"s-open\"] [data-testid=\"sit-share\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "grown",
+          "selector": "[data-testid=\"sit-row\"][data-sit-id=\"s-arch\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "grown",
+          "selector": "[data-testid=\"sit-row\"][data-sit-id=\"s-arch\"] [data-testid=\"sit-share\"]",
+          "count": 0
+        },
+        {
+          "action": "expectVisible",
+          "as": "grown",
+          "selector": "[data-testid=\"sit-row\"][data-sit-id=\"s-arch\"] [data-testid=\"sit-revoke-links\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "grown",
+          "selector": "[data-testid=\"sit-row\"][data-sit-id=\"s-open\"] [data-testid=\"sit-revoke-links\"]",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "name": "an adult's page builds a seeded sit's checklist before it is shared, and Share opens the panel with the day-after-the-sit expiry",
+      "members": {
+        "grown": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p-rex', ?, ?, '🐶', '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Rex",
+            "dog"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES ('p-mochi', ?, ?, '🐱', '2026-09-01T10:00:00.000Z')",
+          "params": [
+            "Mochi",
+            "cat"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-walk', 'p-rex', ?, '🦮', ?, 12, ?, 0, '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Walk",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-feed', 'p-rex', ?, '🍽️', ?, 24, ?, 1, '2026-09-01T09:00:00.000Z')",
+          "params": [
+            "Breakfast",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES ('a-mfeed', 'p-mochi', ?, '🍽️', ?, 24, ?, 0, '2026-09-01T10:00:00.000Z')",
+          "params": [
+            "Feed",
+            "interval",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_pet_care__sits (id, title, starts_on, ends_on, pet_ids, archived, created_by, created_at) VALUES ('s-trip', ?, date('now', '+1 day'), date('now', '+3 days'), ?, 0, ?, '2026-09-02T09:00:00.000Z')",
+          "params": [
+            "Trip",
+            "[\"p-rex\"]",
+            "{{grown}}"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "grown"
+        },
+        {
+          "action": "expectVisible",
+          "as": "grown",
+          "selector": "[data-testid=\"open-sitters\"]"
+        },
+        {
+          "action": "click",
+          "as": "grown",
+          "selector": "[data-testid=\"open-sitters\"]"
+        },
+        {
+          "action": "waitFor",
+          "as": "grown",
+          "selector": "[data-testid=\"sitters-modal\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "grown",
+          "selector": "[data-testid=\"sit-row\"][data-sit-id=\"s-trip\"]",
+          "text": "2 tasks"
+        },
+        {
+          "action": "click",
+          "as": "grown",
+          "selector": "[data-testid=\"sit-row\"][data-sit-id=\"s-trip\"] [data-testid=\"sit-share\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "grown",
+          "selector": "[data-testid=\"share-panel\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "grown",
+          "selector": "#share-expiry",
+          "text": "Until the day after the sit"
+        }
+      ]
+    }
+  ]
+}

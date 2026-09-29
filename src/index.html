@@ -314,7 +314,7 @@ import {
 import {
   formatDuration, statusColor, activityStatusInterval, activityStatusTimes, localDateToISO, isoToLocalDateInput,
   logAuthor, schedLabel, lastDoneToSave, sitSyncBlocksShare, planSitLinkRevoke, sitPetIds, sitIsOpen, sitTaskRows, sitTaskStatements, sitDates,
-  sitExpiryChoice, CARE_SNAPSHOT_STATEMENTS, parseCareSnapshot, refreshSitChecklists,
+  sitExpiryChoice, CARE_SNAPSHOT_STATEMENTS, parseCareSnapshot, refreshSitChecklists, SIT_MAX_TASKS,
 } from "./logic.js";
 import { createShareUi, createOverlayView } from "./share.js";
 
@@ -350,6 +350,7 @@ let actFormPetId   = null; // pet context for the open activity form
 let refreshTimer   = null;
 let sits           = []; // sitter links' sits, newest first
 let sitTasks       = {}; // sitId → its checklist rows, in display order
+let sitTooMany     = {}; // sitId → the task count it would have, past SIT_MAX_TASKS
 
 // ─── Sitter share links (manifest.shareable.sit) ──────────────────────────
 // A sit is a public checklist for a pet-sitter who is not a member: each tick
@@ -490,8 +491,11 @@ async function markDone(activityId) {
   renderMain();
 
   try {
-    await db(`INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
+    // db() resolves with the hub's { error } on a refused write rather than
+    // throwing, so check it: the optimistic tick must come back off.
+    const res = await db(`INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, ?)`,
       [id, activityId, selectedPetId, ME.id, now]);
+    if (res?.error) throw new Error(res.error);
     // Prune old logs in background — no effect on UI state. A sitter's ticks
     // are kept: they are the sit's record, shown on its share page.
     db(`DELETE FROM app_pet_care__logs WHERE activity_id = ? AND id != ? AND sit_id = ''`, [activityId, id]).catch(() => {});
@@ -592,11 +596,13 @@ async function deleteActivity(id) {
 
 // ─── Modal ────────────────────────────────────────────────────────────────
 let modalEl = null;
-function openModal(html) {
+/** `name` stamps data-testid on the dialog, so a UI scenario waits on the
+ *  dialog it opened rather than on any modal. */
+function openModal(html, name = "") {
   closeModal();
   modalEl = document.createElement("div");
   modalEl.className = "modal-backdrop";
-  modalEl.innerHTML = `<div class="modal">${html}</div>`;
+  modalEl.innerHTML = `<div class="modal"${name ? ` data-testid="${name}"` : ""}>${html}</div>`;
   modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
   document.body.appendChild(modalEl);
   // Programmatic focus works inside cross-origin iframes (unlike the autofocus
@@ -617,7 +623,7 @@ function renderCard(activity) {
     const color = mc(lastBy.member?.id ?? (lastBy.sitter ? "sitter" : ""));
     const ago   = formatDuration(lastBy.agoMin);
     lastByHtml = `
-      <div class="card-last-by">
+      <div class="card-last-by" data-testid="card-last-by">
         <span class="by-avatar" style="background:${color}">${initial(name)}</span>
         <span><strong>${esc(name)}</strong> · ${ago} ago</span>
       </div>`;
@@ -626,7 +632,7 @@ function renderCard(activity) {
   }
 
   return `
-    <div class="activity-card" style="--status-color:${color};--status-pct:${pctClamp.toFixed(3)}">
+    <div class="activity-card" data-testid="activity-card" data-activity-id="${esc(activity.id)}" style="--status-color:${color};--status-pct:${pctClamp.toFixed(3)}">
       <div class="card-body">
         <div class="card-top">
           <span class="card-icon">${esc(activity.icon)}</span>
@@ -698,7 +704,7 @@ function renderSettingsModal() {
       <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:0">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
           <div class="info">
-            <strong>${p.emoji} ${esc(p.name)}</strong>
+            <strong>${esc(p.emoji)} ${esc(p.name)}</strong>
             ${p.species ? `<span class="muted"> · ${esc(p.species)}</span>` : ""}
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
@@ -746,7 +752,7 @@ function openPetForm(id = null) {
 
   openModal(`
     <h3 style="margin-bottom:16px">${pet ? "Edit Pet" : "Add Pet"}</h3>
-    <input type="hidden" id="pf-emoji" value="${sel}" />
+    <input type="hidden" id="pf-emoji" value="${esc(sel)}" />
     <div class="form-group">
       <label>Icon</label>
       <div class="emoji-grid">${emojiGrid}</div>
@@ -812,7 +818,7 @@ async function openActivityForm(id = null, petId = null) {
 
   openModal(`
     <h3 style="margin-bottom:16px">${act ? "Edit Activity" : "Add Activity"}</h3>
-    <input type="hidden" id="af-icon" value="${sel}" />
+    <input type="hidden" id="af-icon" value="${esc(sel)}" />
     <div class="form-group">
       <label>Icon</label>
       <div class="emoji-grid">${iconGrid}</div>
@@ -941,13 +947,14 @@ async function loadSits() {
  *  sitter's page follows edits. One atomic batch per sit that drifted. Adults
  *  only: sit_tasks is adult_writable. */
 async function refreshOpenSits() {
-  if (!isAdult(ME)) return { ok: true, failed: [] };
-  const { snap, changed, failed } = await refreshSitChecklists({
+  if (!isAdult(ME)) return { ok: true, failed: [], tooMany: {} };
+  const { snap, changed, failed, tooMany } = await refreshSitChecklists({
     read: readCare, write: dbBatch, today: todayStr(), newId: () => crypto.randomUUID(),
   });
   applySits(snap);
+  sitTooMany = tooMany;
   if (changed) await loadSits();
-  return { ok: true, failed };
+  return { ok: true, failed, tooMany };
 }
 
 /** Reload the sits and refresh their checklists, one run at a time. Never
@@ -956,8 +963,8 @@ async function refreshOpenSits() {
  *  (the next run retries); sharing checks it. */
 let sitSync = Promise.resolve();
 function syncSits() {
-  if (!DB || !isAdult(ME)) return Promise.resolve({ ok: true, failed: [] });
-  const run = sitSync.then(refreshOpenSits).catch(() => ({ ok: false, failed: [] }));
+  if (!DB || !isAdult(ME)) return Promise.resolve({ ok: true, failed: [], tooMany: {} });
+  const run = sitSync.then(refreshOpenSits).catch(() => ({ ok: false, failed: [], tooMany: {} }));
   sitSync = run;
   return run;
 }
@@ -975,11 +982,12 @@ function renderSittersModal() {
     const count = (sitTasks[sit.id] ?? []).length;
     const meta = [sitDates(sit), state].filter(Boolean).join(" · ");
     return `
-      <div class="settings-row sit-row" data-testid="sit-row">
+      <div class="settings-row sit-row" data-testid="sit-row" data-sit-id="${esc(sit.id)}">
         <div class="info">
           <strong>${esc(sit.title)}</strong>
           ${meta ? `<span class="sched-meta">${esc(meta)}</span>` : ""}
           <span class="sched-meta">${esc(petNames || "No pets")} · ${count} ${count === 1 ? "task" : "tasks"}</span>
+          ${sitTooMany[sit.id] ? `<span class="form-error" data-testid="sit-too-many">Too many tasks (${sitTooMany[sit.id]}): a sitter’s page shows at most ${SIT_MAX_TASKS}. Its link keeps the last checklist that fit. Edit the sit to pick fewer pets.</span>` : ""}
         </div>
         <div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
           ${!archived && share.enabled ? `<button class="btn btn-primary btn-sm" data-sit-id="${esc(sit.id)}" onclick="shareSit(this.dataset.sitId)" data-testid="sit-share">Share</button>` : ""}
@@ -1001,7 +1009,7 @@ function renderSittersModal() {
     <div style="margin-top:14px">
       <button class="btn btn-primary btn-sm" onclick="openSitForm()" data-testid="new-sit">+ New sit</button>
     </div>
-  `);
+  `, "sitters-modal");
 }
 
 function openSitForm(id = null) {
@@ -1009,7 +1017,7 @@ function openSitForm(id = null) {
   const chosen = new Set(sit ? sitPetIds(sit) : pets.map(p => p.id));
   const petChecks = pets.map(p => `
     <label class="check-opt">
-      <input type="checkbox" class="sf-pet" value="${esc(p.id)}" ${chosen.has(p.id) ? "checked" : ""} />
+      <input type="checkbox" class="sf-pet" data-testid="sit-pet" data-pet-id="${esc(p.id)}" value="${esc(p.id)}" ${chosen.has(p.id) ? "checked" : ""} />
       ${esc(p.emoji)} ${esc(p.name)}
     </label>`).join("") || `<div class="empty-sm">Add a pet first (⚙️).</div>`;
 
@@ -1017,7 +1025,7 @@ function openSitForm(id = null) {
     <h3 style="margin-bottom:16px">${sit ? "Edit sit" : "New sit"}</h3>
     <div class="form-group">
       <label for="sf-title">Title</label>
-      <input id="sf-title" type="text" maxlength="120" value="${esc(sit?.title ?? "")}" placeholder="Rex &amp; Mochi, Oct 3–10" data-autofocus />
+      <input id="sf-title" data-testid="field-sit-title" type="text" maxlength="120" value="${esc(sit?.title ?? "")}" placeholder="Rex &amp; Mochi, Oct 3–10" data-autofocus />
     </div>
     <div class="form-group date-row">
       <div><label for="sf-start">From</label><input id="sf-start" type="date" value="${esc(sit?.starts_on ?? "")}" /></div>
@@ -1035,13 +1043,10 @@ function openSitForm(id = null) {
     <div id="sf-error" class="form-error" role="alert"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="openSitters()">Back</button>
-      <button class="btn btn-primary" data-sit-id="${esc(id ?? "")}" onclick="submitSit(this.dataset.sitId)">${sit ? "Save" : "Create sit"}</button>
+      <button class="btn btn-primary" data-sit-id="${esc(id ?? "")}" onclick="submitSit(this.dataset.sitId)" data-testid="save-sit">${sit ? "Save" : "Create sit"}</button>
     </div>
-  `);
+  `, "sit-form-modal");
 }
-
-/** /api/db's batch ceiling. */
-const MAX_BATCH_STATEMENTS = 25;
 
 window.submitSit = async function(existingId) {
   if (!isAdult(ME)) return;
@@ -1069,9 +1074,15 @@ window.submitSit = async function(existingId) {
     // The sit and its checklist land together, so a link never shows a sit
     // without its tasks. Built from a fresh read (see readCare).
     const care = await readCare();
-    statements.push(...sitTaskStatements(id, sitTaskRows({ pet_ids }, care.pets, care.activities), () => crypto.randomUUID()));
-    if (statements.length > MAX_BATCH_STATEMENTS) throw new Error("That is too many tasks for one sit — pick fewer pets.");
+    const rows = sitTaskRows({ pet_ids }, care.pets, care.activities);
+    // The sitter's page offers at most SIT_MAX_TASKS; 100 tasks is 9 statements,
+    // well inside the batch ceiling, so this is the limit that binds.
+    if (rows.length > SIT_MAX_TASKS) {
+      throw new Error(`A sit can have at most ${SIT_MAX_TASKS} tasks; this one would have ${rows.length}. Pick fewer pets.`);
+    }
+    statements.push(...sitTaskStatements(id, rows, () => crypto.randomUUID()));
     await dbBatch(statements);
+    delete sitTooMany[id];
     await loadSits();
   } catch (e) {
     errEl.textContent = e?.message || "Could not save the sit.";
@@ -1118,7 +1129,12 @@ window.shareSit = async function(id) {
   if (!isAdult(ME)) return;
   // The link shows the checklist as stored, so bring it up to date first, and
   // don't hand out a link to a checklist that could not be.
-  if (sitSyncBlocksShare(await syncSits(), id)) {
+  const result = await syncSits();
+  if (result.tooMany?.[id]) {
+    hubAlert(`This sit has too many tasks (${result.tooMany[id]}) for a sitter’s page, which shows at most ${SIT_MAX_TASKS}. Edit it to pick fewer pets.`);
+    return;
+  }
+  if (sitSyncBlocksShare(result, id)) {
     hubAlert("Couldn’t bring this sit’s tasks up to date, so a link could show old ones. Try again in a moment.");
     return;
   }

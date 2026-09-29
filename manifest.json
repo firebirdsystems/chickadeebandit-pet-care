@@ -78,7 +78,7 @@
       "kind": "adult_writable"
     }
   },
-  "db_plaintext_columns": ["archived", "sitter_name", "task_label", "label", "detail", "sort_order"],
+  "db_plaintext_columns": ["archived", "sitter_name", "task_label", "label", "detail", "sort_order", "starts_on", "ends_on"],
   "shareable": {
     "sit": {
       "table": "sits",
