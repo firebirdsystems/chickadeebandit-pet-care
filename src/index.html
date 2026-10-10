@@ -437,20 +437,14 @@ async function loadActivities() {
   activities = (rows ?? []).map(r => ({ ...r, times: JSON.parse(r.times ?? "[]") }));
 }
 
+// The latest log of EVERY activity, not just the selected pet's. It takes no
+// params, so it does not have to wait for the pets and activities to come back
+// to know which ids to ask about, the hub can answer it from the document
+// (manifest.preload `last_logs`; this text must match it exactly), and
+// switching pets needs nothing new.
 async function loadLastLogs() {
+  const { rows } = await db("SELECT l.* FROM app_pet_care__logs l INNER JOIN (SELECT activity_id, MAX(done_at) AS max_done FROM app_pet_care__logs GROUP BY activity_id) m ON l.activity_id = m.activity_id AND l.done_at = m.max_done");
   lastLogs = {};
-  const curActs = activities.filter(a => a.pet_id === selectedPetId);
-  if (!curActs.length) return;
-  const ids = curActs.map(a => a.id);
-  const placeholders = ids.map(() => "?").join(",");
-  const { rows } = await db(`
-    SELECT l.* FROM app_pet_care__logs l
-    INNER JOIN (
-      SELECT activity_id, MAX(done_at) AS max_done FROM app_pet_care__logs
-      WHERE activity_id IN (${placeholders})
-      GROUP BY activity_id
-    ) m ON l.activity_id = m.activity_id AND l.done_at = m.max_done
-  `, ids);
   for (const row of rows ?? []) lastLogs[row.activity_id] = row;
 }
 
@@ -1206,9 +1200,8 @@ function handleDeepLink() {
   await loadMembers();
   if (DB) {
     await initDb();
-    await Promise.all([loadPets(), loadActivities()]);
+    await Promise.all([loadPets(), loadActivities(), loadLastLogs()]);
     if (pets.length > 0) selectedPetId = pets[0].id;
-    await loadLastLogs();
   }
   renderMain();
   handleDeepLink();

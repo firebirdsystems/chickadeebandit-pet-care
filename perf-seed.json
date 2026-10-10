@@ -1,0 +1,1804 @@
+{
+  "seed": [
+    {
+      "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-160 days','+0 minutes'))",
+      "params": [
+        "perf-pet-rex",
+        "Rex",
+        "dog",
+        "🐶"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-160 days','+1 minutes'))",
+      "params": [
+        "perf-pet-mochi",
+        "Mochi",
+        "cat",
+        "🐱"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-160 days','+2 minutes'))",
+      "params": [
+        "perf-pet-clover",
+        "Clover",
+        "rabbit",
+        "🐰"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-160 days','+3 minutes'))",
+      "params": [
+        "perf-pet-bubbles",
+        "Bubbles",
+        "goldfish",
+        "🐠"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__pets (id, name, species, emoji, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-160 days','+4 minutes'))",
+      "params": [
+        "perf-pet-kiwi",
+        "Kiwi",
+        "parakeet",
+        "🦜"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+0 minutes'))",
+      "params": [
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "Breakfast",
+        "🍽️",
+        "times",
+        "[\"07:30\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 hours','-13 minutes'))",
+      "params": [
+        "perf-log-001",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-28 hours','-26 minutes'))",
+      "params": [
+        "perf-log-002",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-53 hours','-39 minutes'))",
+      "params": [
+        "perf-log-003",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-75 hours','-2 minutes'))",
+      "params": [
+        "perf-log-004",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-100 hours','-15 minutes'))",
+      "params": [
+        "perf-log-005",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-125 hours','-28 minutes'))",
+      "params": [
+        "perf-log-006",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-147 hours','-41 minutes'))",
+      "params": [
+        "perf-log-007",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-172 hours','-4 minutes'))",
+      "params": [
+        "perf-log-008",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-197 hours','-17 minutes'))",
+      "params": [
+        "perf-log-009",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+1 minutes'))",
+      "params": [
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "Dinner",
+        "🍽️",
+        "times",
+        "[\"18:00\"]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-16 hours','-30 minutes'))",
+      "params": [
+        "perf-log-010",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-41 hours','-43 minutes'))",
+      "params": [
+        "perf-log-011",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-66 hours','-6 minutes'))",
+      "params": [
+        "perf-log-012",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-88 hours','-19 minutes'))",
+      "params": [
+        "perf-log-013",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-113 hours','-32 minutes'))",
+      "params": [
+        "perf-log-014",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-138 hours','-45 minutes'))",
+      "params": [
+        "perf-log-015",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-160 hours','-8 minutes'))",
+      "params": [
+        "perf-log-016",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-185 hours','-21 minutes'))",
+      "params": [
+        "perf-log-017",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-210 hours','-34 minutes'))",
+      "params": [
+        "perf-log-018",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+2 minutes'))",
+      "params": [
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "Walk",
+        "🦮",
+        "interval",
+        8,
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 hours','-47 minutes'))",
+      "params": [
+        "perf-log-019",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-14 hours','-10 minutes'))",
+      "params": [
+        "perf-log-020",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-23 hours','-23 minutes'))",
+      "params": [
+        "perf-log-021",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29 hours','-36 minutes'))",
+      "params": [
+        "perf-log-022",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-38 hours','-49 minutes'))",
+      "params": [
+        "perf-log-023",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 hours','-12 minutes'))",
+      "params": [
+        "perf-log-024",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-53 hours','-25 minutes'))",
+      "params": [
+        "perf-log-025",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-62 hours','-38 minutes'))",
+      "params": [
+        "perf-log-026",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-71 hours','-1 minutes'))",
+      "params": [
+        "perf-log-027",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-77 hours','-14 minutes'))",
+      "params": [
+        "perf-log-028",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-86 hours','-27 minutes'))",
+      "params": [
+        "perf-log-029",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-95 hours','-40 minutes'))",
+      "params": [
+        "perf-log-030",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-101 hours','-3 minutes'))",
+      "params": [
+        "perf-log-031",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-110 hours','-16 minutes'))",
+      "params": [
+        "perf-log-032",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 hours','-29 minutes'))",
+      "params": [
+        "perf-log-033",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+3 minutes'))",
+      "params": [
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "Fresh water",
+        "💧",
+        "interval",
+        12,
+        "[]",
+        3
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 hours','-42 minutes'))",
+      "params": [
+        "perf-log-034",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 hours','-5 minutes'))",
+      "params": [
+        "perf-log-035",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-46 hours','-18 minutes'))",
+      "params": [
+        "perf-log-036",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-56 hours','-31 minutes'))",
+      "params": [
+        "perf-log-037",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-69 hours','-44 minutes'))",
+      "params": [
+        "perf-log-038",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-82 hours','-7 minutes'))",
+      "params": [
+        "perf-log-039",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-92 hours','-20 minutes'))",
+      "params": [
+        "perf-log-040",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-105 hours','-33 minutes'))",
+      "params": [
+        "perf-log-041",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+4 minutes'))",
+      "params": [
+        "perf-act-rex-meds",
+        "perf-pet-rex",
+        "Heartworm pill",
+        "💊",
+        "interval",
+        720,
+        "[]",
+        4
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-400 hours','-46 minutes'))",
+      "params": [
+        "perf-log-042",
+        "perf-act-rex-meds",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1121 hours','-9 minutes'))",
+      "params": [
+        "perf-log-043",
+        "perf-act-rex-meds",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+5 minutes'))",
+      "params": [
+        "perf-act-rex-bath",
+        "perf-pet-rex",
+        "Bath",
+        "🛁",
+        "interval",
+        336,
+        "[]",
+        5
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-500 hours','-22 minutes'))",
+      "params": [
+        "perf-log-044",
+        "perf-act-rex-bath",
+        "perf-pet-rex",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-837 hours','-35 minutes'))",
+      "params": [
+        "perf-log-045",
+        "perf-act-rex-bath",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+6 minutes'))",
+      "params": [
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "Brush teeth",
+        "🦷",
+        "interval",
+        48,
+        "[]",
+        6
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 hours','-48 minutes'))",
+      "params": [
+        "perf-log-046",
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-79 hours','-11 minutes'))",
+      "params": [
+        "perf-log-047",
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-128 hours','-24 minutes'))",
+      "params": [
+        "perf-log-048",
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-174 hours','-37 minutes'))",
+      "params": [
+        "perf-log-049",
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-223 hours','-0 minutes'))",
+      "params": [
+        "perf-log-050",
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+0 minutes'))",
+      "params": [
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "Feed",
+        "🍽️",
+        "times",
+        "[\"07:00\", \"17:30\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-9 hours','-13 minutes'))",
+      "params": [
+        "perf-log-051",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-22 hours','-26 minutes'))",
+      "params": [
+        "perf-log-052",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 hours','-39 minutes'))",
+      "params": [
+        "perf-log-053",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-45 hours','-2 minutes'))",
+      "params": [
+        "perf-log-054",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-58 hours','-15 minutes'))",
+      "params": [
+        "perf-log-055",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-71 hours','-28 minutes'))",
+      "params": [
+        "perf-log-056",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-81 hours','-41 minutes'))",
+      "params": [
+        "perf-log-057",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-94 hours','-4 minutes'))",
+      "params": [
+        "perf-log-058",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-107 hours','-17 minutes'))",
+      "params": [
+        "perf-log-059",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-117 hours','-30 minutes'))",
+      "params": [
+        "perf-log-060",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-130 hours','-43 minutes'))",
+      "params": [
+        "perf-log-061",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+1 minutes'))",
+      "params": [
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "Scoop litter",
+        "🚽",
+        "interval",
+        24,
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 hours','-6 minutes'))",
+      "params": [
+        "perf-log-062",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-55 hours','-19 minutes'))",
+      "params": [
+        "perf-log-063",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-80 hours','-32 minutes'))",
+      "params": [
+        "perf-log-064",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-102 hours','-45 minutes'))",
+      "params": [
+        "perf-log-065",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-127 hours','-8 minutes'))",
+      "params": [
+        "perf-log-066",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-152 hours','-21 minutes'))",
+      "params": [
+        "perf-log-067",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-174 hours','-34 minutes'))",
+      "params": [
+        "perf-log-068",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 hours','-47 minutes'))",
+      "params": [
+        "perf-log-069",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+2 minutes'))",
+      "params": [
+        "perf-act-mochi-play",
+        "perf-pet-mochi",
+        "Play time",
+        "🎾",
+        "interval",
+        24,
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 hours','-10 minutes'))",
+      "params": [
+        "perf-log-070",
+        "perf-act-mochi-play",
+        "perf-pet-mochi",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-37 hours','-23 minutes'))",
+      "params": [
+        "perf-log-071",
+        "perf-act-mochi-play",
+        "perf-pet-mochi",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-62 hours','-36 minutes'))",
+      "params": [
+        "perf-log-072",
+        "perf-act-mochi-play",
+        "perf-pet-mochi",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-84 hours','-49 minutes'))",
+      "params": [
+        "perf-log-073",
+        "perf-act-mochi-play",
+        "perf-pet-mochi",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-109 hours','-12 minutes'))",
+      "params": [
+        "perf-log-074",
+        "perf-act-mochi-play",
+        "perf-pet-mochi",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+3 minutes'))",
+      "params": [
+        "perf-act-mochi-flea",
+        "perf-pet-mochi",
+        "Flea treatment",
+        "💉",
+        "interval",
+        720,
+        "[]",
+        3
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-200 hours','-25 minutes'))",
+      "params": [
+        "perf-log-075",
+        "perf-act-mochi-flea",
+        "perf-pet-mochi",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-921 hours','-38 minutes'))",
+      "params": [
+        "perf-log-076",
+        "perf-act-mochi-flea",
+        "perf-pet-mochi",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+0 minutes'))",
+      "params": [
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "Pellets and hay",
+        "🌿",
+        "interval",
+        12,
+        "[]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-7 hours','-1 minutes'))",
+      "params": [
+        "perf-log-077",
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 hours','-14 minutes'))",
+      "params": [
+        "perf-log-078",
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 hours','-27 minutes'))",
+      "params": [
+        "perf-log-079",
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-43 hours','-40 minutes'))",
+      "params": [
+        "perf-log-080",
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-56 hours','-3 minutes'))",
+      "params": [
+        "perf-log-081",
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-69 hours','-16 minutes'))",
+      "params": [
+        "perf-log-082",
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-79 hours','-29 minutes'))",
+      "params": [
+        "perf-log-083",
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+1 minutes'))",
+      "params": [
+        "perf-act-clover-hutch",
+        "perf-pet-clover",
+        "Clean hutch",
+        "🛁",
+        "interval",
+        168,
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-190 hours','-42 minutes'))",
+      "params": [
+        "perf-log-084",
+        "perf-act-clover-hutch",
+        "perf-pet-clover",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-359 hours','-5 minutes'))",
+      "params": [
+        "perf-log-085",
+        "perf-act-clover-hutch",
+        "perf-pet-clover",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-528 hours','-18 minutes'))",
+      "params": [
+        "perf-log-086",
+        "perf-act-clover-hutch",
+        "perf-pet-clover",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+2 minutes'))",
+      "params": [
+        "perf-act-clover-nails",
+        "perf-pet-clover",
+        "Trim nails",
+        "✂️",
+        "interval",
+        1008,
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-600 hours','-31 minutes'))",
+      "params": [
+        "perf-log-087",
+        "perf-act-clover-nails",
+        "perf-pet-clover",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1609 hours','-44 minutes'))",
+      "params": [
+        "perf-log-088",
+        "perf-act-clover-nails",
+        "perf-pet-clover",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+0 minutes'))",
+      "params": [
+        "perf-act-bubbles-feed",
+        "perf-pet-bubbles",
+        "Feed",
+        "🍽️",
+        "interval",
+        24,
+        "[]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-22 hours','-7 minutes'))",
+      "params": [
+        "perf-log-089",
+        "perf-act-bubbles-feed",
+        "perf-pet-bubbles",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 hours','-20 minutes'))",
+      "params": [
+        "perf-log-090",
+        "perf-act-bubbles-feed",
+        "perf-pet-bubbles",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-72 hours','-33 minutes'))",
+      "params": [
+        "perf-log-091",
+        "perf-act-bubbles-feed",
+        "perf-pet-bubbles",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-94 hours','-46 minutes'))",
+      "params": [
+        "perf-log-092",
+        "perf-act-bubbles-feed",
+        "perf-pet-bubbles",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 hours','-9 minutes'))",
+      "params": [
+        "perf-log-093",
+        "perf-act-bubbles-feed",
+        "perf-pet-bubbles",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-144 hours','-22 minutes'))",
+      "params": [
+        "perf-log-094",
+        "perf-act-bubbles-feed",
+        "perf-pet-bubbles",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-166 hours','-35 minutes'))",
+      "params": [
+        "perf-log-095",
+        "perf-act-bubbles-feed",
+        "perf-pet-bubbles",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+1 minutes'))",
+      "params": [
+        "perf-act-bubbles-tank",
+        "perf-pet-bubbles",
+        "Change water",
+        "💧",
+        "interval",
+        168,
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-100 hours','-48 minutes'))",
+      "params": [
+        "perf-log-096",
+        "perf-act-bubbles-tank",
+        "perf-pet-bubbles",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-269 hours','-11 minutes'))",
+      "params": [
+        "perf-log-097",
+        "perf-act-bubbles-tank",
+        "perf-pet-bubbles",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-438 hours','-24 minutes'))",
+      "params": [
+        "perf-log-098",
+        "perf-act-bubbles-tank",
+        "perf-pet-bubbles",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+0 minutes'))",
+      "params": [
+        "perf-act-kiwi-feed",
+        "perf-pet-kiwi",
+        "Seed and water",
+        "🍽️",
+        "interval",
+        24,
+        "[]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-26 hours','-37 minutes'))",
+      "params": [
+        "perf-log-099",
+        "perf-act-kiwi-feed",
+        "perf-pet-kiwi",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-51 hours','-0 minutes'))",
+      "params": [
+        "perf-log-100",
+        "perf-act-kiwi-feed",
+        "perf-pet-kiwi",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-76 hours','-13 minutes'))",
+      "params": [
+        "perf-log-101",
+        "perf-act-kiwi-feed",
+        "perf-pet-kiwi",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-98 hours','-26 minutes'))",
+      "params": [
+        "perf-log-102",
+        "perf-act-kiwi-feed",
+        "perf-pet-kiwi",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-123 hours','-39 minutes'))",
+      "params": [
+        "perf-log-103",
+        "perf-act-kiwi-feed",
+        "perf-pet-kiwi",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__activities (id, pet_id, name, icon, schedule_type, interval_hours, times, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-159 days','+1 minutes'))",
+      "params": [
+        "perf-act-kiwi-cage",
+        "perf-pet-kiwi",
+        "Clean cage",
+        "🛁",
+        "interval",
+        168,
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-80 hours','-2 minutes'))",
+      "params": [
+        "perf-log-104",
+        "perf-act-kiwi-cage",
+        "perf-pet-kiwi",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-249 hours','-15 minutes'))",
+      "params": [
+        "perf-log-105",
+        "perf-act-kiwi-cage",
+        "perf-pet-kiwi",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sits (id, title, instructions, starts_on, ends_on, pet_ids, archived, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 days'))",
+      "params": [
+        "perf-sit-01",
+        "Rex and Mochi, long weekend",
+        "Rex: one cup of kibble per meal. Mochi: half a can. Vet is Lakeside Animal Clinic, 555-0144. Key is under the blue pot.",
+        "{{date:5}}",
+        "{{date:9}}",
+        "[\"perf-pet-rex\", \"perf-pet-mochi\"]",
+        0,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-01",
+        "perf-sit-01",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "Rex · Breakfast",
+        "07:30",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-02",
+        "perf-sit-01",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "Rex · Dinner",
+        "18:00",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-03",
+        "perf-sit-01",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "Rex · Walk",
+        "Every 8h",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-04",
+        "perf-sit-01",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "Rex · Fresh water",
+        "Every 12h",
+        3
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-05",
+        "perf-sit-01",
+        "perf-act-rex-meds",
+        "perf-pet-rex",
+        "Rex · Heartworm pill",
+        "Every 720h",
+        4
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-06",
+        "perf-sit-01",
+        "perf-act-rex-bath",
+        "perf-pet-rex",
+        "Rex · Bath",
+        "Every 336h",
+        5
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-07",
+        "perf-sit-01",
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "Rex · Brush teeth",
+        "Every 48h",
+        6
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-08",
+        "perf-sit-01",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "Mochi · Feed",
+        "07:00, 17:30",
+        7
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-09",
+        "perf-sit-01",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "Mochi · Scoop litter",
+        "Every 24h",
+        8
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-10",
+        "perf-sit-01",
+        "perf-act-mochi-play",
+        "perf-pet-mochi",
+        "Mochi · Play time",
+        "Every 24h",
+        9
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-11",
+        "perf-sit-01",
+        "perf-act-mochi-flea",
+        "perf-pet-mochi",
+        "Mochi · Flea treatment",
+        "Every 720h",
+        10
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sits (id, title, instructions, starts_on, ends_on, pet_ids, archived, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-75 days'))",
+      "params": [
+        "perf-sit-02",
+        "Everyone, summer trip",
+        "Fish food is on the shelf above the tank. Clover gets fresh hay every morning.",
+        "{{date:-70}}",
+        "{{date:-60}}",
+        "[\"perf-pet-rex\", \"perf-pet-mochi\", \"perf-pet-clover\", \"perf-pet-bubbles\", \"perf-pet-kiwi\"]",
+        0,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-12",
+        "perf-sit-02",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "Rex · Breakfast",
+        "07:30",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-62 days','-31 minutes'), ?, ?, ?)",
+      "params": [
+        "perf-log-106",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "sitter",
+        "perf-sit-02",
+        "Sam the sitter",
+        "Rex · Breakfast"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-13",
+        "perf-sit-02",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "Rex · Dinner",
+        "18:00",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-63 days','-62 minutes'), ?, ?, ?)",
+      "params": [
+        "perf-log-107",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "sitter",
+        "perf-sit-02",
+        "Dana",
+        "Rex · Dinner"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-14",
+        "perf-sit-02",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "Rex · Walk",
+        "Every 8h",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-64 days','-93 minutes'), ?, ?, ?)",
+      "params": [
+        "perf-log-108",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "sitter",
+        "perf-sit-02",
+        "Sam the sitter",
+        "Rex · Walk"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-15",
+        "perf-sit-02",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "Rex · Fresh water",
+        "Every 12h",
+        3
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-65 days','-124 minutes'), ?, ?, ?)",
+      "params": [
+        "perf-log-109",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "sitter",
+        "perf-sit-02",
+        "Dana",
+        "Rex · Fresh water"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-16",
+        "perf-sit-02",
+        "perf-act-rex-meds",
+        "perf-pet-rex",
+        "Rex · Heartworm pill",
+        "Every 720h",
+        4
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-17",
+        "perf-sit-02",
+        "perf-act-rex-bath",
+        "perf-pet-rex",
+        "Rex · Bath",
+        "Every 336h",
+        5
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-18",
+        "perf-sit-02",
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "Rex · Brush teeth",
+        "Every 48h",
+        6
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-68 days','-217 minutes'), ?, ?, ?)",
+      "params": [
+        "perf-log-110",
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "sitter",
+        "perf-sit-02",
+        "Sam the sitter",
+        "Rex · Brush teeth"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-19",
+        "perf-sit-02",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "Mochi · Feed",
+        "07:00, 17:30",
+        7
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','-248 minutes'), ?, ?, ?)",
+      "params": [
+        "perf-log-111",
+        "perf-act-mochi-feed",
+        "perf-pet-mochi",
+        "sitter",
+        "perf-sit-02",
+        "Dana",
+        "Mochi · Feed"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-20",
+        "perf-sit-02",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "Mochi · Scoop litter",
+        "Every 24h",
+        8
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-62 days','-279 minutes'), ?, ?, ?)",
+      "params": [
+        "perf-log-112",
+        "perf-act-mochi-litter",
+        "perf-pet-mochi",
+        "sitter",
+        "perf-sit-02",
+        "Sam the sitter",
+        "Mochi · Scoop litter"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-21",
+        "perf-sit-02",
+        "perf-act-mochi-play",
+        "perf-pet-mochi",
+        "Mochi · Play time",
+        "Every 24h",
+        9
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-63 days','-310 minutes'), ?, ?, ?)",
+      "params": [
+        "perf-log-113",
+        "perf-act-mochi-play",
+        "perf-pet-mochi",
+        "sitter",
+        "perf-sit-02",
+        "Dana",
+        "Mochi · Play time"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-22",
+        "perf-sit-02",
+        "perf-act-mochi-flea",
+        "perf-pet-mochi",
+        "Mochi · Flea treatment",
+        "Every 720h",
+        10
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-23",
+        "perf-sit-02",
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "Clover · Pellets and hay",
+        "Every 12h",
+        11
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__logs (id, activity_id, pet_id, done_by, done_at, sit_id, sitter_name, task_label) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-65 days','-372 minutes'), ?, ?, ?)",
+      "params": [
+        "perf-log-114",
+        "perf-act-clover-feed",
+        "perf-pet-clover",
+        "sitter",
+        "perf-sit-02",
+        "Dana",
+        "Clover · Pellets and hay"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-24",
+        "perf-sit-02",
+        "perf-act-clover-hutch",
+        "perf-pet-clover",
+        "Clover · Clean hutch",
+        "Every 168h",
+        12
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-25",
+        "perf-sit-02",
+        "perf-act-clover-nails",
+        "perf-pet-clover",
+        "Clover · Trim nails",
+        "Every 1008h",
+        13
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-26",
+        "perf-sit-02",
+        "perf-act-bubbles-feed",
+        "perf-pet-bubbles",
+        "Bubbles · Feed",
+        "Every 24h",
+        14
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-27",
+        "perf-sit-02",
+        "perf-act-bubbles-tank",
+        "perf-pet-bubbles",
+        "Bubbles · Change water",
+        "Every 168h",
+        15
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-28",
+        "perf-sit-02",
+        "perf-act-kiwi-feed",
+        "perf-pet-kiwi",
+        "Kiwi · Seed and water",
+        "Every 24h",
+        16
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-29",
+        "perf-sit-02",
+        "perf-act-kiwi-cage",
+        "perf-pet-kiwi",
+        "Kiwi · Clean cage",
+        "Every 168h",
+        17
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sits (id, title, instructions, starts_on, ends_on, pet_ids, archived, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-195 days'))",
+      "params": [
+        "perf-sit-03",
+        "Rex, spring break",
+        "Two walks a day.",
+        "{{date:-190}}",
+        "{{date:-184}}",
+        "[\"perf-pet-rex\"]",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-30",
+        "perf-sit-03",
+        "perf-act-rex-breakfast",
+        "perf-pet-rex",
+        "Rex · Breakfast",
+        "07:30",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-31",
+        "perf-sit-03",
+        "perf-act-rex-dinner",
+        "perf-pet-rex",
+        "Rex · Dinner",
+        "18:00",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-32",
+        "perf-sit-03",
+        "perf-act-rex-walk",
+        "perf-pet-rex",
+        "Rex · Walk",
+        "Every 8h",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-33",
+        "perf-sit-03",
+        "perf-act-rex-water",
+        "perf-pet-rex",
+        "Rex · Fresh water",
+        "Every 12h",
+        3
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-34",
+        "perf-sit-03",
+        "perf-act-rex-meds",
+        "perf-pet-rex",
+        "Rex · Heartworm pill",
+        "Every 720h",
+        4
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-35",
+        "perf-sit-03",
+        "perf-act-rex-bath",
+        "perf-pet-rex",
+        "Rex · Bath",
+        "Every 336h",
+        5
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_pet_care__sit_tasks (id, sit_id, activity_id, pet_id, label, detail, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-sittask-36",
+        "perf-sit-03",
+        "perf-act-rex-teeth",
+        "perf-pet-rex",
+        "Rex · Brush teeth",
+        "Every 48h",
+        6
+      ]
+    }
+  ]
+}

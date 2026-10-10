@@ -27,7 +27,10 @@
   "storage": "db",
   "preload": {
     "pets": {"sql": "SELECT * FROM app_pet_care__pets ORDER BY created_at"},
-    "activities": {"sql": "SELECT * FROM app_pet_care__activities ORDER BY pet_id, sort_order, created_at"}
+    "activities": {"sql": "SELECT * FROM app_pet_care__activities ORDER BY pet_id, sort_order, created_at"},
+    "last_logs": {
+      "sql": "SELECT l.* FROM app_pet_care__logs l INNER JOIN (SELECT activity_id, MAX(done_at) AS max_done FROM app_pet_care__logs GROUP BY activity_id) m ON l.activity_id = m.activity_id AND l.done_at = m.max_done"
+    }
   },
   "db_encryption": "off",
     "member_references": {
