@@ -411,6 +411,11 @@ async function dbBatch(statements) {
   return body.results ?? [];
 }
 
+// A failed write shows one fixed line for the action. Only wording this app
+// wrote for the reader (marked `forUser` where it is thrown) is shown as is;
+// the hub's own error text goes to the console.
+function failText(e, line) { if (!e?.forUser) console.error(e); return e?.forUser ? e.message : line; }
+
 // ─── DB init ──────────────────────────────────────────────────────────────
 async function initDb() {
   // Schema is managed by hub migrations (migrations/001_init.sql)
@@ -514,7 +519,7 @@ async function markDone(activityId) {
     if (prevLog) lastLogs[activityId] = prevLog;
     else delete lastLogs[activityId];
     renderMain();
-    hubAlert(e?.message || "Could not save that.");
+    hubAlert(failText(e, "Couldn’t log that — try again."));
   }
 }
 
@@ -743,7 +748,7 @@ window.doDeletePet = async function(id) {
     const ok = await deletePet(id);
     if (ok) { renderSettingsModal(); renderMain(); syncSits(); }
   } catch (e) {
-    hubAlert(e?.message || "Could not delete the pet.");
+    hubAlert(failText(e, "Couldn’t delete the pet — try again."));
   }
 };
 window.doDeleteActivity = async function(id) {
@@ -751,7 +756,7 @@ window.doDeleteActivity = async function(id) {
     const ok = await deleteActivity(id);
     if (ok) { renderSettingsModal(); renderMain(); syncSits(); }
   } catch (e) {
-    hubAlert(e?.message || "Could not delete the activity.");
+    hubAlert(failText(e, "Couldn’t delete the activity — try again."));
   }
 };
 
@@ -804,7 +809,7 @@ window.submitPet = async function(existingId) {
     await savePet({ name, species, emoji }, existingId || null);
   } catch (e) {
     if (btn) { btn.disabled = false; btn.textContent = existingId ? "Save" : "Add Pet"; }
-    hubAlert(e?.message || "Could not save the pet.");
+    hubAlert(failText(e, "Couldn’t save the pet — try again."));
     return;
   }
   renderSettingsModal();
@@ -924,7 +929,7 @@ window.submitActivity = async function(existingId) {
     await saveActivity({ name, icon, schedule_type: sched, interval_hours, times, lastDoneAt }, existingId || null);
   } catch (e) {
     if (btn) { btn.disabled = false; btn.textContent = existingId ? "Save" : "Add Activity"; }
-    hubAlert(e?.message || "Could not save the activity.");
+    hubAlert(failText(e, "Couldn’t save the activity — try again."));
     return;
   }
   await loadLastLogs().catch(() => {});
@@ -1106,14 +1111,14 @@ window.submitSit = async function(existingId) {
     // The sitter's page offers at most SIT_MAX_TASKS; 100 tasks is 9 statements,
     // well inside the batch ceiling, so this is the limit that binds.
     if (rows.length > SIT_MAX_TASKS) {
-      throw new Error(`A sit can have at most ${SIT_MAX_TASKS} tasks; this one would have ${rows.length}. Pick fewer pets.`);
+      throw Object.assign(new Error(`A sit can have at most ${SIT_MAX_TASKS} tasks; this one would have ${rows.length}. Pick fewer pets.`), { forUser: true });
     }
     statements.push(...sitTaskStatements(id, rows, () => crypto.randomUUID()));
     await dbBatch(statements);
     delete sitTooMany[id];
     await loadSits();
   } catch (e) {
-    errEl.textContent = e?.message || "Could not save the sit.";
+    errEl.textContent = failText(e, "Couldn’t save the sit — try again.");
     if (btn) { btn.disabled = false; btn.textContent = existingId ? "Save" : "Create sit"; }
     return;
   }
@@ -1130,7 +1135,7 @@ window.toggleSitArchived = async function(id) {
     if (archived) await loadSits();
     else await syncSits();
   } catch (e) {
-    hubAlert(e?.message || "Could not update the sit.");
+    hubAlert(failText(e, "Couldn’t update the sit — try again."));
   }
   renderSittersModal();
 };
@@ -1148,7 +1153,7 @@ window.doDeleteSit = async function(id) {
     await dbBatch([{ sql: "DELETE FROM app_pet_care__sits WHERE id = ?", params: [id] }]);
     await loadSits();
   } catch (e) {
-    hubAlert(e?.message || "Could not delete the sit.");
+    hubAlert(failText(e, "Couldn’t delete the sit — try again."));
   }
   renderSittersModal();
 };
